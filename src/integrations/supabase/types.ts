@@ -18,7 +18,9 @@ export type Database = {
         Row: {
           created_at: string
           description: string
+          formula: string | null
           id: string
+          is_calculated: boolean
           max_val: number | null
           method_id: string
           min_val: number | null
@@ -28,7 +30,9 @@ export type Database = {
         Insert: {
           created_at?: string
           description: string
+          formula?: string | null
           id?: string
+          is_calculated?: boolean
           max_val?: number | null
           method_id: string
           min_val?: number | null
@@ -38,7 +42,9 @@ export type Database = {
         Update: {
           created_at?: string
           description?: string
+          formula?: string | null
           id?: string
+          is_calculated?: boolean
           max_val?: number | null
           method_id?: string
           min_val?: number | null
