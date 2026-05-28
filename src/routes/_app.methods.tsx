@@ -110,6 +110,8 @@ function Methods() {
         min_val: f.min_val,
         max_val: f.max_val,
         position: i,
+        is_calculated: f.is_calculated,
+        formula: f.is_calculated ? (f.formula ?? "") : null,
       };
       if (f.id.startsWith("new-")) {
         const { error } = await supabase.from("method_fields").insert(payload);
