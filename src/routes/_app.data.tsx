@@ -35,32 +35,46 @@ function DataView() {
       const { data: samples, error } = await supabase
         .from("samples")
         .select(`
-          id, sample_number, sampled_at, date_analyzed, color, oil_visibility, particulates,
+          id, sample_number, sampled_at, date_analyzed, color, oil_visibility, particulates, analyst_id,
           sample_points!inner(name),
-          profiles(full_name, email),
           sample_readings(value, method_fields!inner(description, unit, methods!inner(name)))
         `)
         .order("sampled_at", { ascending: false })
         .limit(1000);
       if (error) throw error;
-      const rows: Row[] = (samples ?? []).map((s: Record<string, unknown>) => ({
-        id: s.id as string,
-        sample_number: s.sample_number as string,
-        sampled_at: s.sampled_at as string | null,
-        date_analyzed: s.date_analyzed as string | null,
-        color: s.color as string | null,
-        oil_visibility: s.oil_visibility as string | null,
-        particulates: s.particulates as string | null,
-        sample_point: (s.sample_points as { name: string })?.name ?? "",
-        analyst: ((s.profiles as { full_name?: string; email?: string } | null)?.full_name) ?? ((s.profiles as { email?: string } | null)?.email ?? ""),
-        readings: ((s.sample_readings as Array<Record<string, unknown>>) ?? []).map((r) => {
-          const mf = r.method_fields as { description: string; unit: string | null; methods: { name: string } };
-          return { method: mf.methods.name, field: mf.description, unit: mf.unit, value: r.value as number | null };
-        }),
-      }));
+
+      const analystIds = Array.from(new Set((samples ?? []).map((s: Record<string, unknown>) => s.analyst_id).filter(Boolean))) as string[];
+      const profileMap = new Map<string, { full_name: string | null; email: string | null }>();
+      if (analystIds.length > 0) {
+        const { data: profs } = await supabase
+          .from("profiles")
+          .select("id, full_name, email")
+          .in("id", analystIds);
+        (profs ?? []).forEach((p) => profileMap.set(p.id, { full_name: p.full_name, email: p.email }));
+      }
+
+      const rows: Row[] = (samples ?? []).map((s: Record<string, unknown>) => {
+        const prof = profileMap.get(s.analyst_id as string);
+        return {
+          id: s.id as string,
+          sample_number: s.sample_number as string,
+          sampled_at: s.sampled_at as string | null,
+          date_analyzed: s.date_analyzed as string | null,
+          color: s.color as string | null,
+          oil_visibility: s.oil_visibility as string | null,
+          particulates: s.particulates as string | null,
+          sample_point: (s.sample_points as { name: string })?.name ?? "",
+          analyst: prof?.full_name ?? prof?.email ?? "",
+          readings: ((s.sample_readings as Array<Record<string, unknown>>) ?? []).map((r) => {
+            const mf = r.method_fields as { description: string; unit: string | null; methods: { name: string } };
+            return { method: mf.methods.name, field: mf.description, unit: mf.unit, value: r.value as number | null };
+          }),
+        };
+      });
       return rows;
     },
   });
+
 
   const rows = data ?? [];
 
