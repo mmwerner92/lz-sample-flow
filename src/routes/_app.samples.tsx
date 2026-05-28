@@ -9,7 +9,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import { Plus, Save, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -86,6 +85,21 @@ function SampleEntry() {
     enabled: !!selectedMethodId,
   });
 
+  const { data: searchSampleNumbers = [] } = useQuery({
+    queryKey: ["sample_numbers_for_point", searchPoint],
+    queryFn: async () => {
+      if (!searchPoint) return [];
+      const { data, error } = await supabase
+        .from("samples")
+        .select("sample_number")
+        .eq("sample_point_id", searchPoint)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []).map((r: { sample_number: string }) => r.sample_number);
+    },
+    enabled: !!searchPoint,
+  });
+
   // Load existing readings for active sample + method
   useEffect(() => {
     (async () => {
@@ -116,7 +130,7 @@ function SampleEntry() {
 
   async function findSample() {
     if (!searchPoint || !searchNumber) {
-      toast.error("Pick a sample point and enter a sample number.");
+      toast.error("Pick a sample point and sample number.");
       return;
     }
     const { data, error } = await supabase
@@ -175,7 +189,6 @@ function SampleEntry() {
       setActiveSampleId(sampleId);
     }
 
-    // Save readings
     if (selectedMethodId && methodFields.length) {
       const rows = methodFields
         .filter((f) => readings[f.id] !== undefined && readings[f.id] !== "")
@@ -193,6 +206,7 @@ function SampleEntry() {
     }
     toast.success("Sample saved");
     qc.invalidateQueries({ queryKey: ["data_view"] });
+    qc.invalidateQueries({ queryKey: ["sample_numbers_for_point"] });
   }
 
   async function deleteSample() {
@@ -203,6 +217,7 @@ function SampleEntry() {
     toast.success("Sample deleted");
     resetForm();
     qc.invalidateQueries({ queryKey: ["data_view"] });
+    qc.invalidateQueries({ queryKey: ["sample_numbers_for_point"] });
   }
 
   const activePoint = useMemo(
@@ -211,126 +226,135 @@ function SampleEntry() {
   );
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-baseline justify-between">
+    <div className="flex flex-col gap-3 h-[calc(100vh-6rem)]">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Sample Entry</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 className="text-xl font-semibold tracking-tight">Sample Entry</h1>
+          <p className="text-xs text-muted-foreground">
             Analyst: <span className="font-medium text-foreground">{profile?.full_name ?? "—"}</span>
             {activeSampleId && <> · Editing <span className="font-mono text-foreground">{sampleNumber}</span> @ {activePoint}</>}
           </p>
         </div>
         <div className="flex gap-2">
           {activeSampleId && (
-            <Button variant="outline" size="sm" onClick={resetForm}><Plus className="h-4 w-4 mr-2" />New sample</Button>
+            <Button variant="outline" size="sm" onClick={resetForm}><Plus className="h-4 w-4 mr-1" />New</Button>
           )}
           {activeSampleId && (
             <Button variant="ghost" size="sm" onClick={deleteSample} className="text-destructive hover:text-destructive">
-              <Trash2 className="h-4 w-4 mr-2" />Delete
+              <Trash2 className="h-4 w-4 mr-1" />Delete
             </Button>
           )}
-          <Button size="sm" onClick={saveSample}><Save className="h-4 w-4 mr-2" />Save</Button>
+          <Button size="sm" onClick={saveSample}><Save className="h-4 w-4 mr-1" />Save</Button>
         </div>
       </div>
 
       <Card>
-        <CardHeader><CardTitle className="text-base">Find existing sample</CardTitle></CardHeader>
-        <CardContent>
+        <CardContent className="py-3">
           <div className="flex flex-wrap items-end gap-3">
-            <div className="space-y-1.5">
-              <Label>Sample Point</Label>
-              <Select value={searchPoint} onValueChange={setSearchPoint}>
-                <SelectTrigger className="w-56"><SelectValue placeholder="Select point" /></SelectTrigger>
+            <div className="space-y-1">
+              <Label className="text-xs">Find · Sample Point</Label>
+              <Select value={searchPoint} onValueChange={(v) => { setSearchPoint(v); setSearchNumber(""); }}>
+                <SelectTrigger className="w-56 h-9"><SelectValue placeholder="Select point" /></SelectTrigger>
                 <SelectContent>
                   {samplePoints.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-1.5">
-              <Label>Sample Number</Label>
-              <Input className="w-56 font-mono" value={searchNumber} onChange={(e) => setSearchNumber(e.target.value)} />
+            <div className="space-y-1">
+              <Label className="text-xs">Sample Number</Label>
+              <Select value={searchNumber} onValueChange={setSearchNumber} disabled={!searchPoint}>
+                <SelectTrigger className="w-56 h-9 font-mono">
+                  <SelectValue placeholder={searchPoint ? "Select sample" : "Pick point first"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {searchSampleNumbers.length === 0 && (
+                    <div className="px-3 py-2 text-sm text-muted-foreground">No samples for this point</div>
+                  )}
+                  {searchSampleNumbers.map((n) => <SelectItem key={n} value={n} className="font-mono">{n}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </div>
-            <Button variant="outline" onClick={findSample}><Search className="h-4 w-4 mr-2" />Find</Button>
+            <Button variant="outline" size="sm" onClick={findSample}><Search className="h-4 w-4 mr-1" />Load</Button>
           </div>
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Sample data</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-1.5">
-              <Label>Sample Point</Label>
-              <div className="flex gap-2">
-                <Select value={samplePointId} onValueChange={setSamplePointId}>
-                  <SelectTrigger><SelectValue placeholder="Select point" /></SelectTrigger>
-                  <SelectContent>
-                    {samplePoints.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-3 flex-1 min-h-0">
+        <Card className="lg:col-span-3 flex flex-col min-h-0">
+          <CardHeader className="py-3"><CardTitle className="text-sm">Sample data</CardTitle></CardHeader>
+          <CardContent className="flex-1 overflow-auto">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1 col-span-2">
+                <Label className="text-xs">Sample Point</Label>
+                <div className="flex gap-2">
+                  <Select value={samplePointId} onValueChange={setSamplePointId}>
+                    <SelectTrigger className="h-9"><SelectValue placeholder="Select point" /></SelectTrigger>
+                    <SelectContent>
+                      {samplePoints.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Input placeholder="Add new point…" className="h-9" value={newPointName} onChange={(e) => setNewPointName(e.target.value)} />
+                  <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" onClick={addSamplePoint}><Plus className="h-4 w-4" /></Button>
+                </div>
               </div>
-              <div className="flex gap-2 pt-1">
-                <Input placeholder="Add new point…" value={newPointName} onChange={(e) => setNewPointName(e.target.value)} />
-                <Button variant="outline" size="icon" onClick={addSamplePoint}><Plus className="h-4 w-4" /></Button>
+              <div className="space-y-1">
+                <Label className="text-xs">Sample Number</Label>
+                <Input className="font-mono h-9" value={sampleNumber} onChange={(e) => setSampleNumber(e.target.value)} />
               </div>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Sample Number</Label>
-              <Input className="font-mono" value={sampleNumber} onChange={(e) => setSampleNumber(e.target.value)} />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Date &amp; Time Sampled</Label>
-              <Input type="datetime-local" value={sampledAt} onChange={(e) => setSampledAt(e.target.value)} />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Color</Label>
-              <Input value={color} onChange={(e) => setColor(e.target.value)} />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Oil Visibility</Label>
-              <Input value={oilVisibility} onChange={(e) => setOilVisibility(e.target.value)} />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Particulates</Label>
-              <Textarea rows={1} value={particulates} onChange={(e) => setParticulates(e.target.value)} />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Date Analyzed</Label>
-              <Input type="date" value={dateAnalyzed} onChange={(e) => setDateAnalyzed(e.target.value)} />
-            </div>
-          </div>
-
-          <Separator />
-
-          <div>
-            <div className="flex items-end gap-3 mb-4">
-              <div className="space-y-1.5 w-72">
-                <Label>Method</Label>
-                <Select value={selectedMethodId} onValueChange={(v) => { setSelectedMethodId(v); setReadings({}); }}>
-                  <SelectTrigger><SelectValue placeholder="Select a method to add data" /></SelectTrigger>
-                  <SelectContent>
-                    {methods.length === 0 && <div className="px-3 py-2 text-sm text-muted-foreground">No methods yet. Create one on the Methods page.</div>}
-                    {methods.map((m) => <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+              <div className="space-y-1">
+                <Label className="text-xs">Date &amp; Time Sampled</Label>
+                <Input type="datetime-local" className="h-9" value={sampledAt} onChange={(e) => setSampledAt(e.target.value)} />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Color</Label>
+                <Input className="h-9" value={color} onChange={(e) => setColor(e.target.value)} />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Oil Visibility</Label>
+                <Input className="h-9" value={oilVisibility} onChange={(e) => setOilVisibility(e.target.value)} />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Date Analyzed</Label>
+                <Input type="date" className="h-9" value={dateAnalyzed} onChange={(e) => setDateAnalyzed(e.target.value)} />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Particulates</Label>
+                <Textarea rows={1} className="min-h-9" value={particulates} onChange={(e) => setParticulates(e.target.value)} />
               </div>
             </div>
+          </CardContent>
+        </Card>
 
+        <Card className="lg:col-span-2 flex flex-col min-h-0">
+          <CardHeader className="py-3">
+            <div className="flex items-end justify-between gap-2">
+              <CardTitle className="text-sm">Method readings</CardTitle>
+              <Select value={selectedMethodId} onValueChange={(v) => { setSelectedMethodId(v); setReadings({}); }}>
+                <SelectTrigger className="h-8 w-52 text-xs"><SelectValue placeholder="Select method" /></SelectTrigger>
+                <SelectContent>
+                  {methods.length === 0 && <div className="px-3 py-2 text-sm text-muted-foreground">No methods yet.</div>}
+                  {methods.map((m) => <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          </CardHeader>
+          <CardContent className="flex-1 overflow-auto">
+            {!selectedMethodId && (
+              <p className="text-sm text-muted-foreground">Select a method to enter readings.</p>
+            )}
             {selectedMethodId && methodFields.length === 0 && (
-              <p className="text-sm text-muted-foreground">This method has no fields. Add fields on the Methods page.</p>
+              <p className="text-sm text-muted-foreground">This method has no fields.</p>
             )}
             {methodFields.length > 0 && (
               <div className="rounded-md border bg-card overflow-hidden">
-                <table className="w-full text-sm">
+                <table className="w-full text-xs">
                   <thead className="bg-muted/60 text-muted-foreground">
                     <tr>
-                      <th className="text-left font-medium px-3 py-2">Description</th>
-                      <th className="text-left font-medium px-3 py-2 w-24">Unit</th>
-                      <th className="text-left font-medium px-3 py-2 w-24">Min</th>
-                      <th className="text-left font-medium px-3 py-2 w-24">Max</th>
-                      <th className="text-left font-medium px-3 py-2 w-48">Value</th>
+                      <th className="text-left font-medium px-2 py-1.5">Description</th>
+                      <th className="text-left font-medium px-2 py-1.5 w-14">Unit</th>
+                      <th className="text-left font-medium px-2 py-1.5 w-14">Min</th>
+                      <th className="text-left font-medium px-2 py-1.5 w-14">Max</th>
+                      <th className="text-left font-medium px-2 py-1.5 w-28">Value</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -340,13 +364,13 @@ function SampleEntry() {
                       const oor = num !== null && !Number.isNaN(num) && ((f.min_val != null && num < f.min_val) || (f.max_val != null && num > f.max_val));
                       return (
                         <tr key={f.id} className="border-t">
-                          <td className="px-3 py-2">{f.description}</td>
-                          <td className="px-3 py-2 text-muted-foreground">{f.unit ?? "—"}</td>
-                          <td className="px-3 py-2 font-mono text-xs">{f.min_val ?? "—"}</td>
-                          <td className="px-3 py-2 font-mono text-xs">{f.max_val ?? "—"}</td>
-                          <td className="px-3 py-2">
+                          <td className="px-2 py-1.5">{f.description}</td>
+                          <td className="px-2 py-1.5 text-muted-foreground">{f.unit ?? "—"}</td>
+                          <td className="px-2 py-1.5 font-mono">{f.min_val ?? "—"}</td>
+                          <td className="px-2 py-1.5 font-mono">{f.max_val ?? "—"}</td>
+                          <td className="px-2 py-1.5">
                             <Input
-                              className={`font-mono ${oor ? "border-destructive text-destructive" : ""}`}
+                              className={`font-mono h-7 text-xs ${oor ? "border-destructive text-destructive" : ""}`}
                               value={v}
                               onChange={(e) => setReadings((r) => ({ ...r, [f.id]: e.target.value }))}
                               inputMode="decimal"
@@ -359,9 +383,9 @@ function SampleEntry() {
                 </table>
               </div>
             )}
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
