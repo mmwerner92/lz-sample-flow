@@ -70,12 +70,12 @@ function Methods() {
     qc.invalidateQueries({ queryKey: ["methods"] });
   }
 
-  function addField() {
+  function addField(calculated = false) {
     if (!selectedId) return;
     const list = draftFields.length ? draftFields : baseFields.map((f) => ({ ...f }));
     setDraftFields([
       ...list,
-      { id: `new-${Date.now()}`, method_id: selectedId, description: "", unit: "", min_val: null, max_val: null, position: list.length },
+      { id: `new-${Date.now()}`, method_id: selectedId, description: "", unit: "", min_val: null, max_val: null, position: list.length, is_calculated: calculated, formula: calculated ? "" : null },
     ]);
   }
 
