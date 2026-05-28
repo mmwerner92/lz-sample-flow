@@ -1,0 +1,1 @@
+ALTER ROLE fabric_reader BYPASSRLS;
