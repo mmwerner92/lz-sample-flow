@@ -75,7 +75,6 @@ function DataView() {
     },
   });
 
-  });
 
   const rows = data ?? [];
 
