@@ -14,7 +14,196 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      method_fields: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          max_val: number | null
+          method_id: string
+          min_val: number | null
+          position: number
+          unit: string | null
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          max_val?: number | null
+          method_id: string
+          min_val?: number | null
+          position?: number
+          unit?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          max_val?: number | null
+          method_id?: string
+          min_val?: number | null
+          position?: number
+          unit?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "method_fields_method_id_fkey"
+            columns: ["method_id"]
+            isOneToOne: false
+            referencedRelation: "methods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      methods: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
+      sample_points: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      sample_readings: {
+        Row: {
+          created_at: string
+          id: string
+          method_field_id: string
+          sample_id: string
+          updated_at: string
+          value: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          method_field_id: string
+          sample_id: string
+          updated_at?: string
+          value?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          method_field_id?: string
+          sample_id?: string
+          updated_at?: string
+          value?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sample_readings_method_field_id_fkey"
+            columns: ["method_field_id"]
+            isOneToOne: false
+            referencedRelation: "method_fields"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sample_readings_sample_id_fkey"
+            columns: ["sample_id"]
+            isOneToOne: false
+            referencedRelation: "samples"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      samples: {
+        Row: {
+          analyst_id: string | null
+          color: string | null
+          created_at: string
+          date_analyzed: string | null
+          id: string
+          oil_visibility: string | null
+          particulates: string | null
+          sample_number: string
+          sample_point_id: string
+          sampled_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          analyst_id?: string | null
+          color?: string | null
+          created_at?: string
+          date_analyzed?: string | null
+          id?: string
+          oil_visibility?: string | null
+          particulates?: string | null
+          sample_number: string
+          sample_point_id: string
+          sampled_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          analyst_id?: string | null
+          color?: string | null
+          created_at?: string
+          date_analyzed?: string | null
+          id?: string
+          oil_visibility?: string | null
+          particulates?: string | null
+          sample_number?: string
+          sample_point_id?: string
+          sampled_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "samples_sample_point_id_fkey"
+            columns: ["sample_point_id"]
+            isOneToOne: false
+            referencedRelation: "sample_points"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
