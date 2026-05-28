@@ -15,7 +15,7 @@ export const Route = createFileRoute("/_app/methods")({
 });
 
 type Method = { id: string; name: string };
-type MethodField = { id: string; method_id: string; description: string; unit: string | null; min_val: number | null; max_val: number | null; position: number };
+type MethodField = { id: string; method_id: string; description: string; unit: string | null; min_val: number | null; max_val: number | null; position: number; is_calculated: boolean; formula: string | null };
 
 function Methods() {
   const qc = useQueryClient();
