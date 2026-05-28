@@ -375,27 +375,58 @@ function SampleEntry() {
                     </tr>
                   </thead>
                   <tbody>
-                    {methodFields.map((f) => {
-                      const v = readings[f.id] ?? "";
-                      const num = v === "" ? null : Number(v);
-                      const oor = num !== null && !Number.isNaN(num) && ((f.min_val != null && num < f.min_val) || (f.max_val != null && num > f.max_val));
-                      return (
-                        <tr key={f.id} className="border-t">
-                          <td className="px-2 py-1.5">{f.description}</td>
-                          <td className="px-2 py-1.5 text-muted-foreground">{f.unit ?? "—"}</td>
-                          <td className="px-2 py-1.5 font-mono">{f.min_val ?? "—"}</td>
-                          <td className="px-2 py-1.5 font-mono">{f.max_val ?? "—"}</td>
-                          <td className="px-2 py-1.5">
-                            <Input
-                              className={`font-mono h-7 text-xs ${oor ? "border-destructive text-destructive" : ""}`}
-                              value={v}
-                              onChange={(e) => setReadings((r) => ({ ...r, [f.id]: e.target.value }))}
-                              inputMode="decimal"
-                            />
-                          </td>
-                        </tr>
-                      );
-                    })}
+                    {(() => {
+                      const valuesByDesc: Record<string, number> = {};
+                      methodFields.forEach((f) => {
+                        if (!f.is_calculated) {
+                          const rv = readings[f.id];
+                          if (rv !== undefined && rv !== "" && !Number.isNaN(Number(rv))) {
+                            valuesByDesc[f.description] = Number(rv);
+                          }
+                        }
+                      });
+                      return methodFields.map((f) => {
+                        let displayValue = "";
+                        let num: number | null = null;
+                        if (f.is_calculated) {
+                          const c = evalFormula(f.formula ?? "", valuesByDesc);
+                          num = c;
+                          displayValue = c == null ? "" : String(Math.round(c * 10000) / 10000);
+                        } else {
+                          const v = readings[f.id] ?? "";
+                          displayValue = v;
+                          num = v === "" ? null : Number(v);
+                        }
+                        const oor = num !== null && !Number.isNaN(num) && ((f.min_val != null && num < f.min_val) || (f.max_val != null && num > f.max_val));
+                        return (
+                          <tr key={f.id} className="border-t">
+                            <td className="px-2 py-1.5">
+                              <span className="inline-flex items-center gap-1">
+                                {f.is_calculated && <span title="Calculated" className="text-[10px] font-mono px-1 rounded bg-muted text-muted-foreground">ƒ</span>}
+                                {f.description}
+                              </span>
+                            </td>
+                            <td className="px-2 py-1.5 text-muted-foreground">{f.unit ?? "—"}</td>
+                            <td className="px-2 py-1.5 font-mono">{f.min_val ?? "—"}</td>
+                            <td className="px-2 py-1.5 font-mono">{f.max_val ?? "—"}</td>
+                            <td className="px-2 py-1.5">
+                              {f.is_calculated ? (
+                                <div className={`font-mono h-7 px-2 flex items-center text-xs rounded-md border bg-muted/40 ${oor ? "border-destructive text-destructive" : ""}`}>
+                                  {displayValue || <span className="text-muted-foreground">—</span>}
+                                </div>
+                              ) : (
+                                <Input
+                                  className={`font-mono h-7 text-xs ${oor ? "border-destructive text-destructive" : ""}`}
+                                  value={displayValue}
+                                  onChange={(e) => setReadings((r) => ({ ...r, [f.id]: e.target.value }))}
+                                  inputMode="decimal"
+                                />
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      });
+                    })()}
                   </tbody>
                 </table>
               </div>
