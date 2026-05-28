@@ -191,13 +191,28 @@ function SampleEntry() {
     }
 
     if (selectedMethodId && methodFields.length) {
+      // Build description -> value map for formulas (input fields only)
+      const valuesByDesc: Record<string, number> = {};
+      methodFields.forEach((f) => {
+        if (!f.is_calculated) {
+          const v = readings[f.id];
+          if (v !== undefined && v !== "" && !Number.isNaN(Number(v))) {
+            valuesByDesc[f.description] = Number(v);
+          }
+        }
+      });
       const rows = methodFields
-        .filter((f) => readings[f.id] !== undefined && readings[f.id] !== "")
-        .map((f) => ({
-          sample_id: sampleId!,
-          method_field_id: f.id,
-          value: Number(readings[f.id]),
-        }));
+        .map((f) => {
+          if (f.is_calculated) {
+            const computed = evalFormula(f.formula ?? "", valuesByDesc);
+            if (computed == null) return null;
+            return { sample_id: sampleId!, method_field_id: f.id, value: computed };
+          }
+          const v = readings[f.id];
+          if (v === undefined || v === "") return null;
+          return { sample_id: sampleId!, method_field_id: f.id, value: Number(v) };
+        })
+        .filter((r): r is { sample_id: string; method_field_id: string; value: number } => r !== null);
       if (rows.length) {
         const { error } = await supabase
           .from("sample_readings")
@@ -205,6 +220,7 @@ function SampleEntry() {
         if (error) { toast.error(error.message); return; }
       }
     }
+    toast.success("Sample saved");
     toast.success("Sample saved");
     qc.invalidateQueries({ queryKey: ["data_view"] });
     qc.invalidateQueries({ queryKey: ["sample_numbers_for_point"] });
