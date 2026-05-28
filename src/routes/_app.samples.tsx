@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Save, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { evalFormula } from "@/lib/formula";
 
 export const Route = createFileRoute("/_app/samples")({
   head: () => ({ meta: [{ title: "Sample Entry — LJ LIMS" }] }),
