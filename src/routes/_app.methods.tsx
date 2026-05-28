@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Trash2, Save } from "lucide-react";
+import { Plus, Trash2, Save, Calculator } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_app/methods")({
@@ -15,7 +15,7 @@ export const Route = createFileRoute("/_app/methods")({
 });
 
 type Method = { id: string; name: string };
-type MethodField = { id: string; method_id: string; description: string; unit: string | null; min_val: number | null; max_val: number | null; position: number };
+type MethodField = { id: string; method_id: string; description: string; unit: string | null; min_val: number | null; max_val: number | null; position: number; is_calculated: boolean; formula: string | null };
 
 function Methods() {
   const qc = useQueryClient();
@@ -70,12 +70,12 @@ function Methods() {
     qc.invalidateQueries({ queryKey: ["methods"] });
   }
 
-  function addField() {
+  function addField(calculated = false) {
     if (!selectedId) return;
     const list = draftFields.length ? draftFields : baseFields.map((f) => ({ ...f }));
     setDraftFields([
       ...list,
-      { id: `new-${Date.now()}`, method_id: selectedId, description: "", unit: "", min_val: null, max_val: null, position: list.length },
+      { id: `new-${Date.now()}`, method_id: selectedId, description: "", unit: "", min_val: null, max_val: null, position: list.length, is_calculated: calculated, formula: calculated ? "" : null },
     ]);
   }
 
@@ -110,6 +110,8 @@ function Methods() {
         min_val: f.min_val,
         max_val: f.max_val,
         position: i,
+        is_calculated: f.is_calculated,
+        formula: f.is_calculated ? (f.formula ?? "") : null,
       };
       if (f.id.startsWith("new-")) {
         const { error } = await supabase.from("method_fields").insert(payload);
@@ -166,7 +168,8 @@ function Methods() {
                 <Button variant="ghost" size="sm" onClick={deleteMethod} className="text-destructive hover:text-destructive">
                   <Trash2 className="h-4 w-4 mr-2" />Delete method
                 </Button>
-                <Button size="sm" variant="outline" onClick={addField}><Plus className="h-4 w-4 mr-2" />Add field</Button>
+                <Button size="sm" variant="outline" onClick={() => addField(false)}><Plus className="h-4 w-4 mr-2" />Add field</Button>
+                <Button size="sm" variant="outline" onClick={() => addField(true)}><Calculator className="h-4 w-4 mr-2" />Add calculated field</Button>
                 <Button size="sm" onClick={saveFields}><Save className="h-4 w-4 mr-2" />Save</Button>
               </div>
             )}
@@ -175,7 +178,7 @@ function Methods() {
             {!selectedId && <p className="text-sm text-muted-foreground">Pick a method on the left or create a new one to manage its fields.</p>}
             {selectedId && workingFields.length === 0 && (
               <div className="text-center py-12 text-sm text-muted-foreground">
-                No fields yet. <button className="underline" onClick={() => { loadDraft(); addField(); }}>Add the first one</button>.
+                No fields yet. <button className="underline" onClick={() => { loadDraft(); addField(false); }}>Add the first one</button>.
               </div>
             )}
             {selectedId && workingFields.length > 0 && (
@@ -184,20 +187,39 @@ function Methods() {
                   <div>Description</div><div>Unit</div><div>Min</div><div>Max</div><div></div>
                 </div>
                 {workingFields.map((f) => (
-                  <div key={f.id} className="grid grid-cols-[1fr_120px_100px_100px_40px] gap-2 items-center">
-                    <Input value={f.description} onChange={(e) => updateField(f.id, { description: e.target.value })} placeholder="e.g. Acid number" />
-                    <Input value={f.unit ?? ""} onChange={(e) => updateField(f.id, { unit: e.target.value })} placeholder="mg KOH/g" />
-                    <Input className="font-mono" value={f.min_val ?? ""} onChange={(e) => updateField(f.id, { min_val: e.target.value === "" ? null : Number(e.target.value) })} inputMode="decimal" />
-                    <Input className="font-mono" value={f.max_val ?? ""} onChange={(e) => updateField(f.id, { max_val: e.target.value === "" ? null : Number(e.target.value) })} inputMode="decimal" />
-                    <Button variant="ghost" size="icon" onClick={() => removeField(f.id)}><Trash2 className="h-4 w-4 text-muted-foreground" /></Button>
+                  <div key={f.id} className="space-y-1">
+                    <div className="grid grid-cols-[1fr_120px_100px_100px_40px] gap-2 items-center">
+                      <div className="flex items-center gap-2">
+                        {f.is_calculated && <Calculator className="h-3.5 w-3.5 text-muted-foreground shrink-0" />}
+                        <Input value={f.description} onChange={(e) => updateField(f.id, { description: e.target.value })} placeholder={f.is_calculated ? "e.g. Average" : "e.g. Acid number"} />
+                      </div>
+                      <Input value={f.unit ?? ""} onChange={(e) => updateField(f.id, { unit: e.target.value })} placeholder="mg KOH/g" />
+                      <Input className="font-mono" value={f.min_val ?? ""} onChange={(e) => updateField(f.id, { min_val: e.target.value === "" ? null : Number(e.target.value) })} inputMode="decimal" />
+                      <Input className="font-mono" value={f.max_val ?? ""} onChange={(e) => updateField(f.id, { max_val: e.target.value === "" ? null : Number(e.target.value) })} inputMode="decimal" />
+                      <Button variant="ghost" size="icon" onClick={() => removeField(f.id)}><Trash2 className="h-4 w-4 text-muted-foreground" /></Button>
+                    </div>
+                    {f.is_calculated && (
+                      <div className="grid grid-cols-[1fr_40px] gap-2 pl-6">
+                        <Input
+                          className="font-mono text-xs"
+                          value={f.formula ?? ""}
+                          onChange={(e) => updateField(f.id, { formula: e.target.value })}
+                          placeholder="Formula, e.g. ({Acid number} + {Base number}) / 2"
+                        />
+                        <div />
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
             )}
             {selectedId && (
-              <div className="mt-4">
-                <Label className="text-xs text-muted-foreground">
+              <div className="mt-4 space-y-1">
+                <Label className="text-xs text-muted-foreground block">
                   Tip: leave Min/Max blank to skip range warnings on sample entry.
+                </Label>
+                <Label className="text-xs text-muted-foreground block">
+                  Calculated fields reference other fields by description in braces, e.g. <code className="font-mono">{`{Acid number} * 0.5`}</code>. Supported: + − × ÷, parentheses, and min/max/abs/sqrt/pow/round.
                 </Label>
               </div>
             )}
