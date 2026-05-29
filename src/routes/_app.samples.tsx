@@ -12,6 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Copy, Plus, Save, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { evalFormula } from "@/lib/formula";
+import { applyMethodInventoryUsage } from "@/lib/inventory-usage";
+
 
 export const Route = createFileRoute("/_app/samples")({
   head: () => ({ meta: [{ title: "Sample Entry — LJ LIMS" }] }),
