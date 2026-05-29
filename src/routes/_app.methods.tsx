@@ -46,8 +46,6 @@ function Methods() {
   const baseFields = fields;
   const workingFields = draftFields.length ? draftFields : baseFields;
 
-  const workingFields = draftFields.length || selectedId !== (draftFields[0]?.method_id ?? null) ? draftFields : baseFields;
-
   function loadDraft() {
     setDraftFields(baseFields.map((f) => ({ ...f })));
   }
