@@ -1,5 +1,6 @@
-export type Frequency = "One-Time" | "Weekly" | "Bi-Weekly" | "Monthly";
-export const FREQUENCIES: Frequency[] = ["One-Time", "Weekly", "Bi-Weekly", "Monthly"];
+export type Frequency = "One-Time" | "Daily" | "Weekly" | "Bi-Weekly" | "Monthly";
+export const FREQUENCIES: Frequency[] = ["One-Time", "Daily", "Weekly", "Bi-Weekly", "Monthly"];
+
 
 export type SampleStatus = "Open" | "Closed" | "Lab" | "Dispose";
 export const SAMPLE_STATUSES: SampleStatus[] = ["Open", "Closed", "Lab", "Dispose"];
