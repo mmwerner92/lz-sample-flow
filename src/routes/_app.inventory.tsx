@@ -399,7 +399,7 @@ function ItemForm({
 
       <section>
         <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Reorder & cost</div>
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
           {num("Item reorder qty", "item_reorder_quantity")}
           {num("Qty last ordered", "quantity_last_ordered")}
           {date("Date of last order", "date_of_last_order")}
