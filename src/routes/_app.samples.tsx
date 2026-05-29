@@ -279,12 +279,19 @@ function SampleEntry() {
         await supabase.from("sample_readings").insert(rows);
       }
     }
+    if (selectedMethodId) {
+      try { await applyMethodInventoryUsage(newId, selectedMethodId, user?.id ?? null); }
+      catch (e: any) { toast.error(`Inventory: ${e.message}`); }
+    }
 
     setActiveSampleId(newId);
     setSampleNumber(newNumber);
     toast.success(`Saved as ${newNumber}`);
     qc.invalidateQueries({ queryKey: ["data_view"] });
+    qc.invalidateQueries({ queryKey: ["inventory_items"] });
+    qc.invalidateQueries({ queryKey: ["sample_inventory_usage"] });
   }
+
 
   async function deleteSample() {
     if (!activeSampleId) return;
