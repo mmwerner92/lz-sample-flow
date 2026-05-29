@@ -226,6 +226,59 @@ function SampleEntry() {
     qc.invalidateQueries({ queryKey: ["sample_numbers_for_point"] });
   }
 
+  async function saveAsSample() {
+    if (!samplePointId) {
+      toast.error("Sample point is required.");
+      return;
+    }
+    const newNumber = genSampleNumber();
+    const payload = {
+      sample_point_id: samplePointId,
+      sample_number: newNumber,
+      analyst_id: user!.id,
+      sampled_at: sampledAt ? new Date(sampledAt).toISOString() : null,
+      color: color || null,
+      oil_visibility: oilVisibility || null,
+      particulates: particulates || null,
+      date_analyzed: dateAnalyzed || null,
+    };
+    const { data, error } = await supabase.from("samples").insert(payload).select("id").single();
+    if (error) { toast.error(error.message); return; }
+    const newId = data.id as string;
+
+    if (selectedMethodId && methodFields.length) {
+      const valuesByDesc: Record<string, number> = {};
+      methodFields.forEach((f) => {
+        if (!f.is_calculated) {
+          const v = readings[f.id];
+          if (v !== undefined && v !== "" && !Number.isNaN(Number(v))) {
+            valuesByDesc[f.description] = Number(v);
+          }
+        }
+      });
+      const rows = methodFields
+        .map((f) => {
+          if (f.is_calculated) {
+            const computed = evalFormula(f.formula ?? "", valuesByDesc);
+            if (computed == null) return null;
+            return { sample_id: newId, method_field_id: f.id, value: computed };
+          }
+          const v = readings[f.id];
+          if (v === undefined || v === "") return null;
+          return { sample_id: newId, method_field_id: f.id, value: Number(v) };
+        })
+        .filter((r): r is { sample_id: string; method_field_id: string; value: number } => r !== null);
+      if (rows.length) {
+        await supabase.from("sample_readings").insert(rows);
+      }
+    }
+
+    setActiveSampleId(newId);
+    setSampleNumber(newNumber);
+    toast.success(`Saved as ${newNumber}`);
+    qc.invalidateQueries({ queryKey: ["data_view"] });
+  }
+
   async function deleteSample() {
     if (!activeSampleId) return;
     if (!confirm("Delete this sample and all its readings?")) return;
