@@ -14,6 +14,8 @@ import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppUsersRouteImport } from './routes/_app.users'
 import { Route as AppUsageRouteImport } from './routes/_app.usage'
+import { Route as AppScheduleViewRouteImport } from './routes/_app.schedule-view'
+import { Route as AppScheduleRouteImport } from './routes/_app.schedule'
 import { Route as AppSamplesRouteImport } from './routes/_app.samples'
 import { Route as AppMethodsRouteImport } from './routes/_app.methods'
 import { Route as AppInventoryRouteImport } from './routes/_app.inventory'
@@ -41,6 +43,16 @@ const AppUsersRoute = AppUsersRouteImport.update({
 const AppUsageRoute = AppUsageRouteImport.update({
   id: '/usage',
   path: '/usage',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppScheduleViewRoute = AppScheduleViewRouteImport.update({
+  id: '/schedule-view',
+  path: '/schedule-view',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppScheduleRoute = AppScheduleRouteImport.update({
+  id: '/schedule',
+  path: '/schedule',
   getParentRoute: () => AppRoute,
 } as any)
 const AppSamplesRoute = AppSamplesRouteImport.update({
@@ -71,6 +83,8 @@ export interface FileRoutesByFullPath {
   '/inventory': typeof AppInventoryRoute
   '/methods': typeof AppMethodsRoute
   '/samples': typeof AppSamplesRoute
+  '/schedule': typeof AppScheduleRoute
+  '/schedule-view': typeof AppScheduleViewRoute
   '/usage': typeof AppUsageRoute
   '/users': typeof AppUsersRoute
 }
@@ -81,6 +95,8 @@ export interface FileRoutesByTo {
   '/inventory': typeof AppInventoryRoute
   '/methods': typeof AppMethodsRoute
   '/samples': typeof AppSamplesRoute
+  '/schedule': typeof AppScheduleRoute
+  '/schedule-view': typeof AppScheduleViewRoute
   '/usage': typeof AppUsageRoute
   '/users': typeof AppUsersRoute
 }
@@ -93,6 +109,8 @@ export interface FileRoutesById {
   '/_app/inventory': typeof AppInventoryRoute
   '/_app/methods': typeof AppMethodsRoute
   '/_app/samples': typeof AppSamplesRoute
+  '/_app/schedule': typeof AppScheduleRoute
+  '/_app/schedule-view': typeof AppScheduleViewRoute
   '/_app/usage': typeof AppUsageRoute
   '/_app/users': typeof AppUsersRoute
 }
@@ -105,6 +123,8 @@ export interface FileRouteTypes {
     | '/inventory'
     | '/methods'
     | '/samples'
+    | '/schedule'
+    | '/schedule-view'
     | '/usage'
     | '/users'
   fileRoutesByTo: FileRoutesByTo
@@ -115,6 +135,8 @@ export interface FileRouteTypes {
     | '/inventory'
     | '/methods'
     | '/samples'
+    | '/schedule'
+    | '/schedule-view'
     | '/usage'
     | '/users'
   id:
@@ -126,6 +148,8 @@ export interface FileRouteTypes {
     | '/_app/inventory'
     | '/_app/methods'
     | '/_app/samples'
+    | '/_app/schedule'
+    | '/_app/schedule-view'
     | '/_app/usage'
     | '/_app/users'
   fileRoutesById: FileRoutesById
@@ -173,6 +197,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppUsageRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/schedule-view': {
+      id: '/_app/schedule-view'
+      path: '/schedule-view'
+      fullPath: '/schedule-view'
+      preLoaderRoute: typeof AppScheduleViewRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/schedule': {
+      id: '/_app/schedule'
+      path: '/schedule'
+      fullPath: '/schedule'
+      preLoaderRoute: typeof AppScheduleRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/samples': {
       id: '/_app/samples'
       path: '/samples'
@@ -209,6 +247,8 @@ interface AppRouteChildren {
   AppInventoryRoute: typeof AppInventoryRoute
   AppMethodsRoute: typeof AppMethodsRoute
   AppSamplesRoute: typeof AppSamplesRoute
+  AppScheduleRoute: typeof AppScheduleRoute
+  AppScheduleViewRoute: typeof AppScheduleViewRoute
   AppUsageRoute: typeof AppUsageRoute
   AppUsersRoute: typeof AppUsersRoute
 }
@@ -218,6 +258,8 @@ const AppRouteChildren: AppRouteChildren = {
   AppInventoryRoute: AppInventoryRoute,
   AppMethodsRoute: AppMethodsRoute,
   AppSamplesRoute: AppSamplesRoute,
+  AppScheduleRoute: AppScheduleRoute,
+  AppScheduleViewRoute: AppScheduleViewRoute,
   AppUsageRoute: AppUsageRoute,
   AppUsersRoute: AppUsersRoute,
 }
@@ -232,3 +274,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
