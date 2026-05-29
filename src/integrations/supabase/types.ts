@@ -154,6 +154,30 @@ export type Database = {
           },
         ]
       }
+      method_inventory_items: {
+        Row: {
+          created_at: string
+          id: string
+          inventory_item_id: string
+          method_id: string
+          quantity_per_sample: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          inventory_item_id: string
+          method_id: string
+          quantity_per_sample?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          inventory_item_id?: string
+          method_id?: string
+          quantity_per_sample?: number
+        }
+        Relationships: []
+      }
       methods: {
         Row: {
           created_at: string
@@ -190,6 +214,36 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
+        }
+        Relationships: []
+      }
+      sample_inventory_usage: {
+        Row: {
+          id: string
+          inventory_item_id: string
+          method_id: string
+          quantity: number
+          sample_id: string
+          used_at: string
+          used_by: string | null
+        }
+        Insert: {
+          id?: string
+          inventory_item_id: string
+          method_id: string
+          quantity?: number
+          sample_id: string
+          used_at?: string
+          used_by?: string | null
+        }
+        Update: {
+          id?: string
+          inventory_item_id?: string
+          method_id?: string
+          quantity?: number
+          sample_id?: string
+          used_at?: string
+          used_by?: string | null
         }
         Relationships: []
       }

@@ -12,6 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Copy, Plus, Save, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { evalFormula } from "@/lib/formula";
+import { applyMethodInventoryUsage } from "@/lib/inventory-usage";
+
 
 export const Route = createFileRoute("/_app/samples")({
   head: () => ({ meta: [{ title: "Sample Entry — LJ LIMS" }] }),
@@ -219,12 +221,17 @@ function SampleEntry() {
           .upsert(rows, { onConflict: "sample_id,method_field_id" });
         if (error) { toast.error(error.message); return; }
       }
+      try { await applyMethodInventoryUsage(sampleId!, selectedMethodId, user?.id ?? null); }
+      catch (e: any) { toast.error(`Inventory: ${e.message}`); }
     }
-    toast.success("Sample saved");
     toast.success("Sample saved");
     qc.invalidateQueries({ queryKey: ["data_view"] });
     qc.invalidateQueries({ queryKey: ["sample_numbers_for_point"] });
+    qc.invalidateQueries({ queryKey: ["inventory_items"] });
+    qc.invalidateQueries({ queryKey: ["sample_inventory_usage"] });
   }
+
+
 
   async function saveAsSample() {
     if (!samplePointId) {
@@ -272,12 +279,19 @@ function SampleEntry() {
         await supabase.from("sample_readings").insert(rows);
       }
     }
+    if (selectedMethodId) {
+      try { await applyMethodInventoryUsage(newId, selectedMethodId, user?.id ?? null); }
+      catch (e: any) { toast.error(`Inventory: ${e.message}`); }
+    }
 
     setActiveSampleId(newId);
     setSampleNumber(newNumber);
     toast.success(`Saved as ${newNumber}`);
     qc.invalidateQueries({ queryKey: ["data_view"] });
+    qc.invalidateQueries({ queryKey: ["inventory_items"] });
+    qc.invalidateQueries({ queryKey: ["sample_inventory_usage"] });
   }
+
 
   async function deleteSample() {
     if (!activeSampleId) return;
