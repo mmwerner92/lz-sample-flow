@@ -94,4 +94,5 @@ function RootComponent() {
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>
+  );
 }
