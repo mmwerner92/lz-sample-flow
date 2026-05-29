@@ -15,8 +15,19 @@ import { evalFormula } from "@/lib/formula";
 import { applyMethodInventoryUsage } from "@/lib/inventory-usage";
 import { SAMPLE_STATUSES, type SampleStatus } from "@/lib/schedule";
 
+type SamplesSearch = {
+  scheduleId?: string;
+  pointId?: string;
+  sampleNumber?: string;
+};
+
 export const Route = createFileRoute("/_app/samples")({
   head: () => ({ meta: [{ title: "Sample Entry — LJ LIMS" }] }),
+  validateSearch: (search: Record<string, unknown>): SamplesSearch => ({
+    scheduleId: typeof search.scheduleId === "string" ? search.scheduleId : undefined,
+    pointId: typeof search.pointId === "string" ? search.pointId : undefined,
+    sampleNumber: typeof search.sampleNumber === "string" ? search.sampleNumber : undefined,
+  }),
   component: SampleEntry,
 });
 
