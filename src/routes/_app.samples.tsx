@@ -165,25 +165,18 @@ function SampleEntry() {
     setReadings({});
   };
 
-  async function findSample() {
-    if (!searchPoint || !searchNumber) {
-      toast.error("Pick a sample point and sample number.");
-      return;
-    }
+  async function loadSample(pointId: string, number: string): Promise<boolean> {
     const { data, error } = await supabase
       .from("samples")
       .select("*")
-      .eq("sample_point_id", searchPoint)
-      .eq("sample_number", searchNumber)
+      .eq("sample_point_id", pointId)
+      .eq("sample_number", number)
       .maybeSingle();
     if (error) {
       toast.error(error.message);
-      return;
+      return false;
     }
-    if (!data) {
-      toast.error("Sample not found.");
-      return;
-    }
+    if (!data) return false;
     const s = data as SampleRow;
     setActiveSampleId(s.id);
     setSamplePointId(s.sample_point_id);
@@ -195,8 +188,32 @@ function SampleEntry() {
     setDateAnalyzed(s.date_analyzed ?? "");
     setStatus((s.status as SampleStatus) ?? "");
     setReadings({});
-    toast.success(`Loaded sample ${s.sample_number}`);
+    return true;
   }
+
+  async function findSample() {
+    if (!searchPoint || !searchNumber) {
+      toast.error("Pick a sample point and sample number.");
+      return;
+    }
+    const ok = await loadSample(searchPoint, searchNumber);
+    if (!ok) toast.error("Sample not found.");
+    else toast.success(`Loaded sample ${searchNumber}`);
+  }
+
+  // Apply incoming search params from Sample Schedule navigation
+  useEffect(() => {
+    if (search.scheduleId) setScheduleId(search.scheduleId);
+    else setScheduleId(null);
+    (async () => {
+      if (search.pointId && search.sampleNumber) {
+        await loadSample(search.pointId, search.sampleNumber);
+      } else if (search.pointId) {
+        setSamplePointId(search.pointId);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search.scheduleId, search.pointId, search.sampleNumber]);
 
   async function addSamplePoint() {
     if (!newPointName.trim()) return;
