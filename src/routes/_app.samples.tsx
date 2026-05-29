@@ -13,6 +13,7 @@ import { Copy, Plus, Save, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { evalFormula } from "@/lib/formula";
 import { applyMethodInventoryUsage } from "@/lib/inventory-usage";
+import { SAMPLE_STATUSES, type SampleStatus } from "@/lib/schedule";
 
 export const Route = createFileRoute("/_app/samples")({
   head: () => ({ meta: [{ title: "Sample Entry — LJ LIMS" }] }),
@@ -42,6 +43,7 @@ type SampleRow = {
   oil_visibility: string | null;
   particulates: string | null;
   date_analyzed: string | null;
+  status: string | null;
 };
 
 function genSampleNumber() {
@@ -79,6 +81,7 @@ function SampleEntry() {
   const [oilVisibility, setOilVisibility] = useState("");
   const [particulates, setParticulates] = useState("");
   const [dateAnalyzed, setDateAnalyzed] = useState("");
+  const [status, setStatus] = useState<SampleStatus | "">("");
   const [activeSampleId, setActiveSampleId] = useState<string | null>(null);
   const [selectedMethodId, setSelectedMethodId] = useState<string>("");
   const [readings, setReadings] = useState<Record<string, string>>({});
