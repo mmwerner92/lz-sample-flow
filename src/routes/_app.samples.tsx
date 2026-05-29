@@ -63,6 +63,13 @@ function genSampleNumber() {
   return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
 }
 
+function todayISO() {
+  const d = new Date();
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+
 function SampleEntry() {
   const { user, profile } = useAuth();
   const qc = useQueryClient();
@@ -88,13 +95,16 @@ function SampleEntry() {
     },
   });
 
+
+
   const [samplePointId, setSamplePointId] = useState<string>("");
   const [sampleNumber, setSampleNumber] = useState<string>(genSampleNumber());
   const [sampledAt, setSampledAt] = useState("");
   const [color, setColor] = useState("");
   const [oilVisibility, setOilVisibility] = useState("");
   const [particulates, setParticulates] = useState("");
-  const [dateAnalyzed, setDateAnalyzed] = useState("");
+  const [dateAnalyzed, setDateAnalyzed] = useState(todayISO());
+
   const [status, setStatus] = useState<SampleStatus | "">("");
   const [activeSampleId, setActiveSampleId] = useState<string | null>(null);
   const [selectedMethodId, setSelectedMethodId] = useState<string>("");
@@ -160,7 +170,8 @@ function SampleEntry() {
     setColor("");
     setOilVisibility("");
     setParticulates("");
-    setDateAnalyzed("");
+    setDateAnalyzed(todayISO());
+
     setStatus("");
     setReadings({});
   };
@@ -184,7 +195,8 @@ function SampleEntry() {
     setSampledAt(s.sampled_at ? s.sampled_at.slice(0, 16) : "");
     setColor(s.color ?? "");
     setOilVisibility(s.oil_visibility ?? "");
-    setParticulates(s.particulates ?? "");
+    setDateAnalyzed(s.date_analyzed ?? todayISO());
+
     setDateAnalyzed(s.date_analyzed ?? "");
     setStatus((s.status as SampleStatus) ?? "");
     setReadings({});
@@ -308,15 +320,16 @@ function SampleEntry() {
 
   async function linkToSchedule(num: string) {
     if (!scheduleId) return;
+    const nextStatus: SampleStatus = (status as SampleStatus) || "Lab";
     const { error } = await supabase
       .from("sample_schedules")
-      .update({ sample_number: num, status: "Lab" })
+      .update({ sample_number: num, status: nextStatus })
       .eq("id", scheduleId);
     if (error) {
       toast.error(`Schedule: ${error.message}`);
       return;
     }
-    setStatus("Lab");
+    if (!status) setStatus(nextStatus);
     qc.invalidateQueries({ queryKey: ["sample_schedules"] });
     qc.invalidateQueries({ queryKey: ["sample_schedules_view"] });
     // Keep URL in sync so re-clicking the row loads this sample
@@ -326,6 +339,7 @@ function SampleEntry() {
       replace: true,
     });
   }
+
 
   async function saveAsSample() {
     if (!samplePointId) {
@@ -552,7 +566,8 @@ function SampleEntry() {
                 <Label className="text-xs">Date &amp; Time Sampled</Label>
                 <Input
                   type="datetime-local"
-                  className="h-9"
+                  className="h-9 dark:[&::-webkit-calendar-picker-indicator]:invert"
+
                   value={sampledAt}
                   onChange={(e) => setSampledAt(e.target.value)}
                 />
@@ -569,10 +584,11 @@ function SampleEntry() {
                 <Label className="text-xs">Date Analyzed</Label>
                 <Input
                   type="date"
-                  className="h-9"
+                  className="h-9 dark:[&::-webkit-calendar-picker-indicator]:invert"
                   value={dateAnalyzed}
                   onChange={(e) => setDateAnalyzed(e.target.value)}
                 />
+
               </div>
               <div className="space-y-1">
                 <Label className="text-xs">Particulates</Label>
