@@ -147,6 +147,7 @@ function SampleEntry() {
     setOilVisibility("");
     setParticulates("");
     setDateAnalyzed("");
+    setStatus("");
     setReadings({});
   };
 
@@ -178,6 +179,7 @@ function SampleEntry() {
     setOilVisibility(s.oil_visibility ?? "");
     setParticulates(s.particulates ?? "");
     setDateAnalyzed(s.date_analyzed ?? "");
+    setStatus((s.status as SampleStatus) ?? "");
     setReadings({});
     toast.success(`Loaded sample ${s.sample_number}`);
   }
@@ -208,6 +210,7 @@ function SampleEntry() {
       oil_visibility: oilVisibility || null,
       particulates: particulates || null,
       date_analyzed: dateAnalyzed || null,
+      status: status || null,
     };
     let sampleId = activeSampleId;
     if (sampleId) {
@@ -286,6 +289,7 @@ function SampleEntry() {
       oil_visibility: oilVisibility || null,
       particulates: particulates || null,
       date_analyzed: dateAnalyzed || null,
+      status: status || null,
     };
     const { data, error } = await supabase.from("samples").insert(payload).select("id").single();
     if (error) {
