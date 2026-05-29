@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Save, Search, Trash2 } from "lucide-react";
+import { Copy, Plus, Save, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { evalFormula } from "@/lib/formula";
 
