@@ -307,6 +307,39 @@ export type Database = {
           },
         ]
       }
+      sample_schedules: {
+        Row: {
+          created_at: string
+          frequency: string
+          id: string
+          next_trigger_at: string
+          sample_point_id: string
+          status: string
+          time_of_day: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          frequency: string
+          id?: string
+          next_trigger_at: string
+          sample_point_id: string
+          status: string
+          time_of_day: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          frequency?: string
+          id?: string
+          next_trigger_at?: string
+          sample_point_id?: string
+          status?: string
+          time_of_day?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       samples: {
         Row: {
           analyst_id: string | null
@@ -319,6 +352,7 @@ export type Database = {
           sample_number: string
           sample_point_id: string
           sampled_at: string | null
+          status: string | null
           updated_at: string
         }
         Insert: {
@@ -332,6 +366,7 @@ export type Database = {
           sample_number: string
           sample_point_id: string
           sampled_at?: string | null
+          status?: string | null
           updated_at?: string
         }
         Update: {
@@ -345,6 +380,7 @@ export type Database = {
           sample_number?: string
           sample_point_id?: string
           sampled_at?: string | null
+          status?: string | null
           updated_at?: string
         }
         Relationships: [
