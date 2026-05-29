@@ -1,10 +1,13 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
-import { FlaskConical, BeakerIcon, Table2, LogOut } from "lucide-react";
+import { FlaskConical, BeakerIcon, Table2, LogOut, Users } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { getMyAdminStatus } from "@/lib/admin-users.functions";
 import type { ReactNode } from "react";
 
-const nav = [
+const baseNav = [
   { to: "/samples", label: "Sample Entry", icon: BeakerIcon },
   { to: "/methods", label: "Methods", icon: FlaskConical },
   { to: "/data", label: "Data View", icon: Table2 },
@@ -13,6 +16,16 @@ const nav = [
 export function AppLayout({ children }: { children: ReactNode }) {
   const { profile, user, signOut } = useAuth();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const adminCheck = useServerFn(getMyAdminStatus);
+  const me = useQuery({
+    queryKey: ["me-admin"],
+    queryFn: () => adminCheck(),
+    enabled: !!user,
+  });
+
+  const nav = me.data?.isAdmin
+    ? [...baseNav, { to: "/users", label: "Users", icon: Users }]
+    : baseNav;
 
   return (
     <div className="flex min-h-screen bg-background">
