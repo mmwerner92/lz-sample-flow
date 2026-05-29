@@ -102,9 +102,9 @@ function SampleEntry() {
   const [sampledAt, setSampledAt] = useState("");
   const [color, setColor] = useState("");
   const [oilVisibility, setOilVisibility] = useState("");
+  const [particulates, setParticulates] = useState("");
   const [dateAnalyzed, setDateAnalyzed] = useState(todayISO());
 
-  const [dateAnalyzed, setDateAnalyzed] = useState("");
   const [status, setStatus] = useState<SampleStatus | "">("");
   const [activeSampleId, setActiveSampleId] = useState<string | null>(null);
   const [selectedMethodId, setSelectedMethodId] = useState<string>("");
