@@ -387,6 +387,7 @@ function SampleEntry() {
 
     setActiveSampleId(newId);
     setSampleNumber(newNumber);
+    await linkToSchedule(newNumber);
     toast.success(`Saved as ${newNumber}`);
     qc.invalidateQueries({ queryKey: ["data_view"] });
     qc.invalidateQueries({ queryKey: ["inventory_items"] });
