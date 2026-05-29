@@ -375,9 +375,3 @@ function MethodInventoryEditor({ methodId }: { methodId: string }) {
     </div>
   );
 }
-
-        </Card>
-      </div>
-    </div>
-  );
-}
