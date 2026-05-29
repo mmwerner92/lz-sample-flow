@@ -198,35 +198,37 @@ function Methods() {
                     </div>
                   )}
                   {workingFields.length > 0 && (
-                    <div className="space-y-2">
-                      <div className="grid grid-cols-[1fr_120px_100px_100px_40px] gap-2 px-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                        <div>Description</div><div>Unit</div><div>Min</div><div>Max</div><div></div>
-                      </div>
-                      {workingFields.map((f) => (
-                        <div key={f.id} className="space-y-1">
-                          <div className="grid grid-cols-[1fr_120px_100px_100px_40px] gap-2 items-center">
-                            <div className="flex items-center gap-2">
-                              {f.is_calculated && <Calculator className="h-3.5 w-3.5 text-muted-foreground shrink-0" />}
-                              <Input value={f.description} onChange={(e) => updateField(f.id, { description: e.target.value })} placeholder={f.is_calculated ? "e.g. Average" : "e.g. Acid number"} />
-                            </div>
-                            <Input value={f.unit ?? ""} onChange={(e) => updateField(f.id, { unit: e.target.value })} placeholder="mg KOH/g" />
-                            <Input className="font-mono" value={f.min_val ?? ""} onChange={(e) => updateField(f.id, { min_val: e.target.value === "" ? null : Number(e.target.value) })} inputMode="decimal" />
-                            <Input className="font-mono" value={f.max_val ?? ""} onChange={(e) => updateField(f.id, { max_val: e.target.value === "" ? null : Number(e.target.value) })} inputMode="decimal" />
-                            <Button variant="ghost" size="icon" onClick={() => removeField(f.id)}><Trash2 className="h-4 w-4 text-muted-foreground" /></Button>
-                          </div>
-                          {f.is_calculated && (
-                            <div className="grid grid-cols-[1fr_40px] gap-2 pl-6">
-                              <Input
-                                className="font-mono text-xs"
-                                value={f.formula ?? ""}
-                                onChange={(e) => updateField(f.id, { formula: e.target.value })}
-                                placeholder="Formula, e.g. ({Acid number} + {Base number}) / 2"
-                              />
-                              <div />
-                            </div>
-                          )}
+                    <div className="overflow-x-auto -mx-2">
+                      <div className="space-y-2 min-w-[560px] px-2">
+                        <div className="grid grid-cols-[1fr_120px_100px_100px_40px] gap-2 px-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                          <div>Description</div><div>Unit</div><div>Min</div><div>Max</div><div></div>
                         </div>
-                      ))}
+                        {workingFields.map((f) => (
+                          <div key={f.id} className="space-y-1">
+                            <div className="grid grid-cols-[1fr_120px_100px_100px_40px] gap-2 items-center">
+                              <div className="flex items-center gap-2">
+                                {f.is_calculated && <Calculator className="h-3.5 w-3.5 text-muted-foreground shrink-0" />}
+                                <Input value={f.description} onChange={(e) => updateField(f.id, { description: e.target.value })} placeholder={f.is_calculated ? "e.g. Average" : "e.g. Acid number"} />
+                              </div>
+                              <Input value={f.unit ?? ""} onChange={(e) => updateField(f.id, { unit: e.target.value })} placeholder="mg KOH/g" />
+                              <Input className="font-mono" value={f.min_val ?? ""} onChange={(e) => updateField(f.id, { min_val: e.target.value === "" ? null : Number(e.target.value) })} inputMode="decimal" />
+                              <Input className="font-mono" value={f.max_val ?? ""} onChange={(e) => updateField(f.id, { max_val: e.target.value === "" ? null : Number(e.target.value) })} inputMode="decimal" />
+                              <Button variant="ghost" size="icon" onClick={() => removeField(f.id)}><Trash2 className="h-4 w-4 text-muted-foreground" /></Button>
+                            </div>
+                            {f.is_calculated && (
+                              <div className="grid grid-cols-[1fr_40px] gap-2 pl-6">
+                                <Input
+                                  className="font-mono text-xs"
+                                  value={f.formula ?? ""}
+                                  onChange={(e) => updateField(f.id, { formula: e.target.value })}
+                                  placeholder="Formula, e.g. ({Acid number} + {Base number}) / 2"
+                                />
+                                <div />
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                   <div className="mt-4 space-y-1">
@@ -343,33 +345,35 @@ function MethodInventoryEditor({ methodId }: { methodId: string }) {
           No inventory items configured for this method.
         </div>
       ) : (
-        <div className="space-y-2">
-          <div className="grid grid-cols-[1fr_160px_120px_40px] gap-2 px-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
-            <div>Inventory item</div><div>Qty / sample</div><div>Lab stock</div><div></div>
+        <div className="overflow-x-auto">
+          <div className="space-y-2 min-w-[520px]">
+            <div className="grid grid-cols-[1fr_160px_120px_40px] gap-2 px-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              <div>Inventory item</div><div>Qty / sample</div><div>Lab stock</div><div></div>
+            </div>
+            {draft.map((r) => {
+              const item = inventory.find((i) => i.id === r.inventory_item_id);
+              return (
+                <div key={r.id} className="grid grid-cols-[1fr_160px_120px_40px] gap-2 items-center">
+                  <Select value={r.inventory_item_id} onValueChange={(v) => update(r.id, { inventory_item_id: v })}>
+                    <SelectTrigger><SelectValue placeholder="Select inventory item" /></SelectTrigger>
+                    <SelectContent>
+                      {inventory.map((i) => (
+                        <SelectItem key={i.id} value={i.id}>{i.item_name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    className="font-mono"
+                    inputMode="decimal"
+                    value={r.quantity_per_sample}
+                    onChange={(e) => update(r.id, { quantity_per_sample: e.target.value === "" ? 0 : Number(e.target.value) })}
+                  />
+                  <div className="text-sm text-muted-foreground font-mono px-2">{item ? item.lab_stock : "—"}</div>
+                  <Button variant="ghost" size="icon" onClick={() => remove(r.id)}><Trash2 className="h-4 w-4 text-muted-foreground" /></Button>
+                </div>
+              );
+            })}
           </div>
-          {draft.map((r) => {
-            const item = inventory.find((i) => i.id === r.inventory_item_id);
-            return (
-              <div key={r.id} className="grid grid-cols-[1fr_160px_120px_40px] gap-2 items-center">
-                <Select value={r.inventory_item_id} onValueChange={(v) => update(r.id, { inventory_item_id: v })}>
-                  <SelectTrigger><SelectValue placeholder="Select inventory item" /></SelectTrigger>
-                  <SelectContent>
-                    {inventory.map((i) => (
-                      <SelectItem key={i.id} value={i.id}>{i.item_name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Input
-                  className="font-mono"
-                  inputMode="decimal"
-                  value={r.quantity_per_sample}
-                  onChange={(e) => update(r.id, { quantity_per_sample: e.target.value === "" ? 0 : Number(e.target.value) })}
-                />
-                <div className="text-sm text-muted-foreground font-mono px-2">{item ? item.lab_stock : "—"}</div>
-                <Button variant="ghost" size="icon" onClick={() => remove(r.id)}><Trash2 className="h-4 w-4 text-muted-foreground" /></Button>
-              </div>
-            );
-          })}
         </div>
       )}
     </div>

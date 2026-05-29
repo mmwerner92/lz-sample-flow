@@ -349,11 +349,11 @@ function ItemForm({
 
   return (
     <div className="space-y-6">
-      <section className="grid grid-cols-3 gap-3">
+      <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
         {text("Item name *", "item_name")}
         {text("Vendor", "vendor")}
         {text("Designation", "designation")}
-        <div className="col-span-3">{text("Description", "description")}</div>
+        <div className="sm:col-span-2 md:col-span-3">{text("Description", "description")}</div>
         {text("Kit number", "kit_number")}
         {text("Item number", "item_number")}
         {text("Lot #", "lot_number")}
@@ -379,7 +379,7 @@ function ItemForm({
 
       <section>
         <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Stock</div>
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
           {num("Lab stock", "lab_stock")}
           {num("Warehouse stock", "warehouse_stock")}
           {num("In-use", "in_use")}
@@ -399,7 +399,7 @@ function ItemForm({
 
       <section>
         <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Reorder & cost</div>
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
           {num("Item reorder qty", "item_reorder_quantity")}
           {num("Qty last ordered", "quantity_last_ordered")}
           {date("Date of last order", "date_of_last_order")}
