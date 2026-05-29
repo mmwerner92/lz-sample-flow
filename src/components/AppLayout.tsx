@@ -20,7 +20,8 @@ const baseNav = [
 const STORAGE_KEY = "lj-sidebar-collapsed";
 
 export function AppLayout({ children }: { children: ReactNode }) {
-  const { profile, user, signOut } = useAuth();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { theme, toggle: toggleTheme } = useTheme();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const adminCheck = useServerFn(getMyAdminStatus);
   const me = useQuery({
@@ -142,6 +143,26 @@ export function AppLayout({ children }: { children: ReactNode }) {
             size="sm"
             className={cn(
               "mt-2 w-full justify-start text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-foreground",
+              collapsed && "md:justify-center md:px-0"
+            )}
+            onClick={toggleTheme}
+            title={collapsed ? (theme === "dark" ? "Light mode" : "Dark mode") : undefined}
+            aria-label="Toggle theme"
+          >
+            {theme === "dark" ? (
+              <Sun className={cn("h-4 w-4", collapsed ? "md:mr-0 mr-2" : "mr-2")} />
+            ) : (
+              <Moon className={cn("h-4 w-4", collapsed ? "md:mr-0 mr-2" : "mr-2")} />
+            )}
+            <span className={cn(collapsed && "md:hidden")}>
+              {theme === "dark" ? "Light mode" : "Dark mode"}
+            </span>
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className={cn(
+              "mt-1 w-full justify-start text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-foreground",
               collapsed && "md:justify-center md:px-0"
             )}
             onClick={signOut}
