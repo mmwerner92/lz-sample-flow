@@ -353,7 +353,7 @@ function ItemForm({
         {text("Item name *", "item_name")}
         {text("Vendor", "vendor")}
         {text("Designation", "designation")}
-        <div className="col-span-3">{text("Description", "description")}</div>
+        <div className="sm:col-span-2 md:col-span-3">{text("Description", "description")}</div>
         {text("Kit number", "kit_number")}
         {text("Item number", "item_number")}
         {text("Lot #", "lot_number")}
