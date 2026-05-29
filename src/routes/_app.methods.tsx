@@ -38,11 +38,14 @@ function Methods() {
       const { data, error } = await supabase.from("method_fields").select("*").eq("method_id", selectedId).order("position");
       if (error) throw error;
       return data as MethodField[];
-  const workingFields = draftFields.length ? draftFields : baseFields;
+    },
+    enabled: !!selectedId,
   });
 
   const [draftFields, setDraftFields] = useState<MethodField[]>([]);
   const baseFields = fields;
+  const workingFields = draftFields.length ? draftFields : baseFields;
+
   const workingFields = draftFields.length || selectedId !== (draftFields[0]?.method_id ?? null) ? draftFields : baseFields;
 
   function loadDraft() {
