@@ -1,12 +1,13 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
-import { FlaskConical, BeakerIcon, Table2, LogOut, Users, Package, History, ChevronLeft, ChevronRight, Menu, X } from "lucide-react";
+import { FlaskConical, BeakerIcon, Table2, LogOut, Users, Package, History, ChevronLeft, ChevronRight, Menu, X, Moon, Sun } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getMyAdminStatus } from "@/lib/admin-users.functions";
 import { useEffect, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { useTheme } from "@/lib/theme";
 
 const baseNav = [
   { to: "/samples", label: "Sample Entry", icon: BeakerIcon },
@@ -21,6 +22,7 @@ const STORAGE_KEY = "lj-sidebar-collapsed";
 export function AppLayout({ children }: { children: ReactNode }) {
   const { profile, user, signOut } = useAuth();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { theme, toggle: toggleTheme } = useTheme();
   const adminCheck = useServerFn(getMyAdminStatus);
   const me = useQuery({
     queryKey: ["me-admin"],
@@ -141,6 +143,26 @@ export function AppLayout({ children }: { children: ReactNode }) {
             size="sm"
             className={cn(
               "mt-2 w-full justify-start text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-foreground",
+              collapsed && "md:justify-center md:px-0"
+            )}
+            onClick={toggleTheme}
+            title={collapsed ? (theme === "dark" ? "Light mode" : "Dark mode") : undefined}
+            aria-label="Toggle theme"
+          >
+            {theme === "dark" ? (
+              <Sun className={cn("h-4 w-4", collapsed ? "md:mr-0 mr-2" : "mr-2")} />
+            ) : (
+              <Moon className={cn("h-4 w-4", collapsed ? "md:mr-0 mr-2" : "mr-2")} />
+            )}
+            <span className={cn(collapsed && "md:hidden")}>
+              {theme === "dark" ? "Light mode" : "Dark mode"}
+            </span>
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className={cn(
+              "mt-1 w-full justify-start text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-foreground",
               collapsed && "md:justify-center md:px-0"
             )}
             onClick={signOut}
