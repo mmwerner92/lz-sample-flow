@@ -20,9 +20,11 @@ export function computeNextTrigger(
   const base = lastTrigger ? new Date(lastTrigger) : new Date(from);
   const next = new Date(base);
   next.setHours(hh ?? 0, mm ?? 0, 0, 0);
-
   if (lastTrigger) {
     switch (frequency) {
+      case "Daily":
+        next.setDate(next.getDate() + 1);
+        break;
       case "Weekly":
         next.setDate(next.getDate() + 7);
         break;
@@ -36,6 +38,8 @@ export function computeNextTrigger(
         return next;
     }
     return next;
+  }
+
   }
 
   // No prior trigger — first occurrence at/after `from`
