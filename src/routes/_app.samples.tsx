@@ -170,7 +170,8 @@ function SampleEntry() {
     setColor("");
     setOilVisibility("");
     setParticulates("");
-    setDateAnalyzed("");
+    setDateAnalyzed(todayISO());
+
     setStatus("");
     setReadings({});
   };
