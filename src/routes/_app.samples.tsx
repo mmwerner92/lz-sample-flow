@@ -583,7 +583,8 @@ function SampleEntry() {
               <div className="space-y-1">
                 <Label className="text-xs">Date Analyzed</Label>
                 <Input
-                  type="date"
+                  className="h-9 dark:[&::-webkit-calendar-picker-indicator]:invert"
+
                   className="h-9"
                   value={dateAnalyzed}
                   onChange={(e) => setDateAnalyzed(e.target.value)}
