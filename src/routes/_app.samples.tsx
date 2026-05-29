@@ -14,7 +14,6 @@ import { toast } from "sonner";
 import { evalFormula } from "@/lib/formula";
 import { applyMethodInventoryUsage } from "@/lib/inventory-usage";
 
-
 export const Route = createFileRoute("/_app/samples")({
   head: () => ({ meta: [{ title: "Sample Entry — LJ LIMS" }] }),
   component: SampleEntry,
@@ -22,7 +21,17 @@ export const Route = createFileRoute("/_app/samples")({
 
 type SamplePoint = { id: string; name: string };
 type Method = { id: string; name: string };
-type MethodField = { id: string; method_id: string; description: string; unit: string | null; min_val: number | null; max_val: number | null; position: number; is_calculated: boolean; formula: string | null };
+type MethodField = {
+  id: string;
+  method_id: string;
+  description: string;
+  unit: string | null;
+  min_val: number | null;
+  max_val: number | null;
+  position: number;
+  is_calculated: boolean;
+  formula: string | null;
+};
 type SampleRow = {
   id: string;
   sample_point_id: string;
@@ -81,7 +90,11 @@ function SampleEntry() {
     queryKey: ["method_fields", selectedMethodId],
     queryFn: async () => {
       if (!selectedMethodId) return [];
-      const { data, error } = await supabase.from("method_fields").select("*").eq("method_id", selectedMethodId).order("position");
+      const { data, error } = await supabase
+        .from("method_fields")
+        .select("*")
+        .eq("method_id", selectedMethodId)
+        .order("position");
       if (error) throw error;
       return data as MethodField[];
     },
@@ -111,7 +124,10 @@ function SampleEntry() {
         .from("sample_readings")
         .select("method_field_id, value")
         .eq("sample_id", activeSampleId)
-        .in("method_field_id", methodFields.map((f) => f.id));
+        .in(
+          "method_field_id",
+          methodFields.map((f) => f.id),
+        );
       const map: Record<string, string> = {};
       (data ?? []).forEach((r: { method_field_id: string; value: number | null }) => {
         map[r.method_field_id] = r.value == null ? "" : String(r.value);
@@ -142,8 +158,14 @@ function SampleEntry() {
       .eq("sample_point_id", searchPoint)
       .eq("sample_number", searchNumber)
       .maybeSingle();
-    if (error) { toast.error(error.message); return; }
-    if (!data) { toast.error("Sample not found."); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    if (!data) {
+      toast.error("Sample not found.");
+      return;
+    }
     const s = data as SampleRow;
     setActiveSampleId(s.id);
     setSamplePointId(s.sample_point_id);
@@ -160,7 +182,10 @@ function SampleEntry() {
   async function addSamplePoint() {
     if (!newPointName.trim()) return;
     const { error } = await supabase.from("sample_points").insert({ name: newPointName.trim() });
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     setNewPointName("");
     toast.success("Sample point added");
     qc.invalidateQueries({ queryKey: ["sample_points"] });
@@ -184,10 +209,16 @@ function SampleEntry() {
     let sampleId = activeSampleId;
     if (sampleId) {
       const { error } = await supabase.from("samples").update(payload).eq("id", sampleId);
-      if (error) { toast.error(error.message); return; }
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
     } else {
       const { data, error } = await supabase.from("samples").insert(payload).select("id").single();
-      if (error) { toast.error(error.message); return; }
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
       sampleId = data.id as string;
       setActiveSampleId(sampleId);
     }
@@ -219,10 +250,16 @@ function SampleEntry() {
         const { error } = await supabase
           .from("sample_readings")
           .upsert(rows, { onConflict: "sample_id,method_field_id" });
-        if (error) { toast.error(error.message); return; }
+        if (error) {
+          toast.error(error.message);
+          return;
+        }
       }
-      try { await applyMethodInventoryUsage(sampleId!, selectedMethodId, user?.id ?? null); }
-      catch (e: any) { toast.error(`Inventory: ${e.message}`); }
+      try {
+        await applyMethodInventoryUsage(sampleId!, selectedMethodId, user?.id ?? null);
+      } catch (e: any) {
+        toast.error(`Inventory: ${e.message}`);
+      }
     }
     toast.success("Sample saved");
     qc.invalidateQueries({ queryKey: ["data_view"] });
@@ -230,8 +267,6 @@ function SampleEntry() {
     qc.invalidateQueries({ queryKey: ["inventory_items"] });
     qc.invalidateQueries({ queryKey: ["sample_inventory_usage"] });
   }
-
-
 
   async function saveAsSample() {
     if (!samplePointId) {
@@ -250,7 +285,10 @@ function SampleEntry() {
       date_analyzed: dateAnalyzed || null,
     };
     const { data, error } = await supabase.from("samples").insert(payload).select("id").single();
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     const newId = data.id as string;
 
     if (selectedMethodId && methodFields.length) {
@@ -280,8 +318,11 @@ function SampleEntry() {
       }
     }
     if (selectedMethodId) {
-      try { await applyMethodInventoryUsage(newId, selectedMethodId, user?.id ?? null); }
-      catch (e: any) { toast.error(`Inventory: ${e.message}`); }
+      try {
+        await applyMethodInventoryUsage(newId, selectedMethodId, user?.id ?? null);
+      } catch (e: any) {
+        toast.error(`Inventory: ${e.message}`);
+      }
     }
 
     setActiveSampleId(newId);
@@ -292,12 +333,14 @@ function SampleEntry() {
     qc.invalidateQueries({ queryKey: ["sample_inventory_usage"] });
   }
 
-
   async function deleteSample() {
     if (!activeSampleId) return;
     if (!confirm("Delete this sample and all its readings?")) return;
     const { error } = await supabase.from("samples").delete().eq("id", activeSampleId);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     toast.success("Sample deleted");
     resetForm();
     qc.invalidateQueries({ queryKey: ["data_view"] });
@@ -306,30 +349,50 @@ function SampleEntry() {
 
   const activePoint = useMemo(
     () => samplePoints.find((p) => p.id === samplePointId)?.name ?? "—",
-    [samplePoints, samplePointId]
+    [samplePoints, samplePointId],
   );
 
   return (
-    <div className="flex flex-col gap-3 h-[calc(100vh-6rem)]">
+    <div className="flex flex-col gap-3 h-[calc(100vh-3rem)]">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
           <h1 className="text-xl font-semibold tracking-tight">Sample Entry</h1>
           <p className="text-xs text-muted-foreground">
             Analyst: <span className="font-medium text-foreground">{profile?.full_name ?? "—"}</span>
-            {activeSampleId && <> · Editing <span className="font-mono text-foreground">{sampleNumber}</span> @ {activePoint}</>}
+            {activeSampleId && (
+              <>
+                {" "}
+                · Editing <span className="font-mono text-foreground">{sampleNumber}</span> @ {activePoint}
+              </>
+            )}
           </p>
         </div>
         <div className="flex gap-2">
           {activeSampleId && (
-            <Button variant="outline" size="sm" onClick={resetForm}><Plus className="h-4 w-4 mr-1" />New</Button>
-          )}
-          {activeSampleId && (
-            <Button variant="ghost" size="sm" onClick={deleteSample} className="text-destructive hover:text-destructive">
-              <Trash2 className="h-4 w-4 mr-1" />Delete
+            <Button variant="outline" size="sm" onClick={resetForm}>
+              <Plus className="h-4 w-4 mr-1" />
+              New
             </Button>
           )}
-          <Button variant="outline" size="sm" onClick={saveAsSample}><Copy className="h-4 w-4 mr-1" />Save As</Button>
-          <Button size="sm" onClick={saveSample}><Save className="h-4 w-4 mr-1" />Save</Button>
+          {activeSampleId && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={deleteSample}
+              className="text-destructive hover:text-destructive"
+            >
+              <Trash2 className="h-4 w-4 mr-1" />
+              Delete
+            </Button>
+          )}
+          <Button variant="outline" size="sm" onClick={saveAsSample}>
+            <Copy className="h-4 w-4 mr-1" />
+            Save As
+          </Button>
+          <Button size="sm" onClick={saveSample}>
+            <Save className="h-4 w-4 mr-1" />
+            Save
+          </Button>
         </div>
       </div>
 
@@ -338,10 +401,22 @@ function SampleEntry() {
           <div className="flex flex-wrap items-end gap-3">
             <div className="space-y-1">
               <Label className="text-xs">Find · Sample Point</Label>
-              <Select value={searchPoint} onValueChange={(v) => { setSearchPoint(v); setSearchNumber(""); }}>
-                <SelectTrigger className="w-56 h-9"><SelectValue placeholder="Select point" /></SelectTrigger>
+              <Select
+                value={searchPoint}
+                onValueChange={(v) => {
+                  setSearchPoint(v);
+                  setSearchNumber("");
+                }}
+              >
+                <SelectTrigger className="w-56 h-9">
+                  <SelectValue placeholder="Select point" />
+                </SelectTrigger>
                 <SelectContent>
-                  {samplePoints.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                  {samplePoints.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -355,40 +430,71 @@ function SampleEntry() {
                   {searchSampleNumbers.length === 0 && (
                     <div className="px-3 py-2 text-sm text-muted-foreground">No samples for this point</div>
                   )}
-                  {searchSampleNumbers.map((n) => <SelectItem key={n} value={n} className="font-mono">{n}</SelectItem>)}
+                  {searchSampleNumbers.map((n) => (
+                    <SelectItem key={n} value={n} className="font-mono">
+                      {n}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
-            <Button variant="outline" size="sm" onClick={findSample}><Search className="h-4 w-4 mr-1" />Load</Button>
+            <Button variant="outline" size="sm" onClick={findSample}>
+              <Search className="h-4 w-4 mr-1" />
+              Load
+            </Button>
           </div>
         </CardContent>
       </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-3 flex-1 min-h-0">
         <Card className="lg:col-span-3 flex flex-col min-h-0">
-          <CardHeader className="py-3"><CardTitle className="text-sm">Sample data</CardTitle></CardHeader>
+          <CardHeader className="py-3">
+            <CardTitle className="text-sm">Sample data</CardTitle>
+          </CardHeader>
           <CardContent className="flex-1 overflow-auto">
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1 col-span-2">
                 <Label className="text-xs">Sample Point</Label>
                 <div className="flex gap-2">
                   <Select value={samplePointId} onValueChange={setSamplePointId}>
-                    <SelectTrigger className="h-9"><SelectValue placeholder="Select point" /></SelectTrigger>
+                    <SelectTrigger className="h-9">
+                      <SelectValue placeholder="Select point" />
+                    </SelectTrigger>
                     <SelectContent>
-                      {samplePoints.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                      {samplePoints.map((p) => (
+                        <SelectItem key={p.id} value={p.id}>
+                          {p.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
-                  <Input placeholder="Add new point…" className="h-9" value={newPointName} onChange={(e) => setNewPointName(e.target.value)} />
-                  <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" onClick={addSamplePoint}><Plus className="h-4 w-4" /></Button>
+                  <Input
+                    placeholder="Add new point…"
+                    className="h-9"
+                    value={newPointName}
+                    onChange={(e) => setNewPointName(e.target.value)}
+                  />
+                  <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" onClick={addSamplePoint}>
+                    <Plus className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
               <div className="space-y-1">
                 <Label className="text-xs">Sample Number</Label>
-                <Input className="font-mono h-9" value={sampleNumber} onChange={(e) => setSampleNumber(e.target.value)} />
+                <Input
+                  className="font-mono h-9"
+                  value={sampleNumber}
+                  onChange={(e) => setSampleNumber(e.target.value)}
+                />
               </div>
               <div className="space-y-1">
                 <Label className="text-xs">Date &amp; Time Sampled</Label>
-                <Input type="datetime-local" className="h-9" value={sampledAt} onChange={(e) => setSampledAt(e.target.value)} />
+                <Input
+                  type="datetime-local"
+                  className="h-9"
+                  value={sampledAt}
+                  onChange={(e) => setSampledAt(e.target.value)}
+                />
               </div>
               <div className="space-y-1">
                 <Label className="text-xs">Color</Label>
@@ -400,11 +506,21 @@ function SampleEntry() {
               </div>
               <div className="space-y-1">
                 <Label className="text-xs">Date Analyzed</Label>
-                <Input type="date" className="h-9" value={dateAnalyzed} onChange={(e) => setDateAnalyzed(e.target.value)} />
+                <Input
+                  type="date"
+                  className="h-9"
+                  value={dateAnalyzed}
+                  onChange={(e) => setDateAnalyzed(e.target.value)}
+                />
               </div>
               <div className="space-y-1">
                 <Label className="text-xs">Particulates</Label>
-                <Textarea rows={1} className="min-h-9" value={particulates} onChange={(e) => setParticulates(e.target.value)} />
+                <Textarea
+                  rows={1}
+                  className="min-h-9"
+                  value={particulates}
+                  onChange={(e) => setParticulates(e.target.value)}
+                />
               </div>
             </div>
           </CardContent>
@@ -414,19 +530,31 @@ function SampleEntry() {
           <CardHeader className="py-3">
             <div className="flex items-end justify-between gap-2">
               <CardTitle className="text-sm">Method readings</CardTitle>
-              <Select value={selectedMethodId} onValueChange={(v) => { setSelectedMethodId(v); setReadings({}); }}>
-                <SelectTrigger className="h-8 w-52 text-xs"><SelectValue placeholder="Select method" /></SelectTrigger>
+              <Select
+                value={selectedMethodId}
+                onValueChange={(v) => {
+                  setSelectedMethodId(v);
+                  setReadings({});
+                }}
+              >
+                <SelectTrigger className="h-8 w-52 text-xs">
+                  <SelectValue placeholder="Select method" />
+                </SelectTrigger>
                 <SelectContent>
-                  {methods.length === 0 && <div className="px-3 py-2 text-sm text-muted-foreground">No methods yet.</div>}
-                  {methods.map((m) => <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>)}
+                  {methods.length === 0 && (
+                    <div className="px-3 py-2 text-sm text-muted-foreground">No methods yet.</div>
+                  )}
+                  {methods.map((m) => (
+                    <SelectItem key={m.id} value={m.id}>
+                      {m.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
           </CardHeader>
           <CardContent className="flex-1 overflow-auto">
-            {!selectedMethodId && (
-              <p className="text-sm text-muted-foreground">Select a method to enter readings.</p>
-            )}
+            {!selectedMethodId && <p className="text-sm text-muted-foreground">Select a method to enter readings.</p>}
             {selectedMethodId && methodFields.length === 0 && (
               <p className="text-sm text-muted-foreground">This method has no fields.</p>
             )}
@@ -465,12 +593,22 @@ function SampleEntry() {
                           displayValue = v;
                           num = v === "" ? null : Number(v);
                         }
-                        const oor = num !== null && !Number.isNaN(num) && ((f.min_val != null && num < f.min_val) || (f.max_val != null && num > f.max_val));
+                        const oor =
+                          num !== null &&
+                          !Number.isNaN(num) &&
+                          ((f.min_val != null && num < f.min_val) || (f.max_val != null && num > f.max_val));
                         return (
                           <tr key={f.id} className="border-t">
                             <td className="px-2 py-1.5">
                               <span className="inline-flex items-center gap-1">
-                                {f.is_calculated && <span title="Calculated" className="text-[10px] font-mono px-1 rounded bg-muted text-muted-foreground">ƒ</span>}
+                                {f.is_calculated && (
+                                  <span
+                                    title="Calculated"
+                                    className="text-[10px] font-mono px-1 rounded bg-muted text-muted-foreground"
+                                  >
+                                    ƒ
+                                  </span>
+                                )}
                                 {f.description}
                               </span>
                             </td>
@@ -479,7 +617,9 @@ function SampleEntry() {
                             <td className="px-2 py-1.5 font-mono">{f.max_val ?? "—"}</td>
                             <td className="px-2 py-1.5">
                               {f.is_calculated ? (
-                                <div className={`font-mono h-7 px-2 flex items-center text-xs rounded-md border bg-muted/40 ${oor ? "border-destructive text-destructive" : ""}`}>
+                                <div
+                                  className={`font-mono h-7 px-2 flex items-center text-xs rounded-md border bg-muted/40 ${oor ? "border-destructive text-destructive" : ""}`}
+                                >
                                   {displayValue || <span className="text-muted-foreground">—</span>}
                                 </div>
                               ) : (
