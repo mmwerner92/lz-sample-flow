@@ -566,7 +566,8 @@ function SampleEntry() {
                 <Label className="text-xs">Date &amp; Time Sampled</Label>
                 <Input
                   type="datetime-local"
-                  className="h-9"
+                  className="h-9 dark:[&::-webkit-calendar-picker-indicator]:invert"
+
                   value={sampledAt}
                   onChange={(e) => setSampledAt(e.target.value)}
                 />
