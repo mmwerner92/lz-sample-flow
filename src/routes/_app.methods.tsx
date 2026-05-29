@@ -345,33 +345,35 @@ function MethodInventoryEditor({ methodId }: { methodId: string }) {
           No inventory items configured for this method.
         </div>
       ) : (
-        <div className="space-y-2">
-          <div className="grid grid-cols-[1fr_160px_120px_40px] gap-2 px-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
-            <div>Inventory item</div><div>Qty / sample</div><div>Lab stock</div><div></div>
+        <div className="overflow-x-auto">
+          <div className="space-y-2 min-w-[520px]">
+            <div className="grid grid-cols-[1fr_160px_120px_40px] gap-2 px-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              <div>Inventory item</div><div>Qty / sample</div><div>Lab stock</div><div></div>
+            </div>
+            {draft.map((r) => {
+              const item = inventory.find((i) => i.id === r.inventory_item_id);
+              return (
+                <div key={r.id} className="grid grid-cols-[1fr_160px_120px_40px] gap-2 items-center">
+                  <Select value={r.inventory_item_id} onValueChange={(v) => update(r.id, { inventory_item_id: v })}>
+                    <SelectTrigger><SelectValue placeholder="Select inventory item" /></SelectTrigger>
+                    <SelectContent>
+                      {inventory.map((i) => (
+                        <SelectItem key={i.id} value={i.id}>{i.item_name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    className="font-mono"
+                    inputMode="decimal"
+                    value={r.quantity_per_sample}
+                    onChange={(e) => update(r.id, { quantity_per_sample: e.target.value === "" ? 0 : Number(e.target.value) })}
+                  />
+                  <div className="text-sm text-muted-foreground font-mono px-2">{item ? item.lab_stock : "—"}</div>
+                  <Button variant="ghost" size="icon" onClick={() => remove(r.id)}><Trash2 className="h-4 w-4 text-muted-foreground" /></Button>
+                </div>
+              );
+            })}
           </div>
-          {draft.map((r) => {
-            const item = inventory.find((i) => i.id === r.inventory_item_id);
-            return (
-              <div key={r.id} className="grid grid-cols-[1fr_160px_120px_40px] gap-2 items-center">
-                <Select value={r.inventory_item_id} onValueChange={(v) => update(r.id, { inventory_item_id: v })}>
-                  <SelectTrigger><SelectValue placeholder="Select inventory item" /></SelectTrigger>
-                  <SelectContent>
-                    {inventory.map((i) => (
-                      <SelectItem key={i.id} value={i.id}>{i.item_name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Input
-                  className="font-mono"
-                  inputMode="decimal"
-                  value={r.quantity_per_sample}
-                  onChange={(e) => update(r.id, { quantity_per_sample: e.target.value === "" ? 0 : Number(e.target.value) })}
-                />
-                <div className="text-sm text-muted-foreground font-mono px-2">{item ? item.lab_stock : "—"}</div>
-                <Button variant="ghost" size="icon" onClick={() => remove(r.id)}><Trash2 className="h-4 w-4 text-muted-foreground" /></Button>
-              </div>
-            );
-          })}
         </div>
       )}
     </div>
