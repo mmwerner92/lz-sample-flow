@@ -20,9 +20,9 @@ const baseNav = [
 const STORAGE_KEY = "lj-sidebar-collapsed";
 
 export function AppLayout({ children }: { children: ReactNode }) {
+  const { profile, user, signOut } = useAuth();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { theme, toggle: toggleTheme } = useTheme();
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
   const adminCheck = useServerFn(getMyAdminStatus);
   const me = useQuery({
     queryKey: ["me-admin"],
