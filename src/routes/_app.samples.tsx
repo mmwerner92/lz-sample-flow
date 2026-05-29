@@ -195,7 +195,8 @@ function SampleEntry() {
     setSampledAt(s.sampled_at ? s.sampled_at.slice(0, 16) : "");
     setColor(s.color ?? "");
     setOilVisibility(s.oil_visibility ?? "");
-    setParticulates(s.particulates ?? "");
+    setDateAnalyzed(s.date_analyzed ?? todayISO());
+
     setDateAnalyzed(s.date_analyzed ?? "");
     setStatus((s.status as SampleStatus) ?? "");
     setReadings({});
