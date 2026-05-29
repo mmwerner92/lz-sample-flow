@@ -313,6 +313,7 @@ export type Database = {
           frequency: string
           id: string
           next_trigger_at: string
+          sample_number: string | null
           sample_point_id: string
           status: string
           time_of_day: string
@@ -323,6 +324,7 @@ export type Database = {
           frequency: string
           id?: string
           next_trigger_at: string
+          sample_number?: string | null
           sample_point_id: string
           status: string
           time_of_day: string
@@ -333,6 +335,7 @@ export type Database = {
           frequency?: string
           id?: string
           next_trigger_at?: string
+          sample_number?: string | null
           sample_point_id?: string
           status?: string
           time_of_day?: string

@@ -15,8 +15,19 @@ import { evalFormula } from "@/lib/formula";
 import { applyMethodInventoryUsage } from "@/lib/inventory-usage";
 import { SAMPLE_STATUSES, type SampleStatus } from "@/lib/schedule";
 
+type SamplesSearch = {
+  scheduleId?: string;
+  pointId?: string;
+  sampleNumber?: string;
+};
+
 export const Route = createFileRoute("/_app/samples")({
   head: () => ({ meta: [{ title: "Sample Entry — LJ LIMS" }] }),
+  validateSearch: (search: Record<string, unknown>): SamplesSearch => ({
+    scheduleId: typeof search.scheduleId === "string" ? search.scheduleId : undefined,
+    pointId: typeof search.pointId === "string" ? search.pointId : undefined,
+    sampleNumber: typeof search.sampleNumber === "string" ? search.sampleNumber : undefined,
+  }),
   component: SampleEntry,
 });
 
@@ -55,6 +66,9 @@ function genSampleNumber() {
 function SampleEntry() {
   const { user, profile } = useAuth();
   const qc = useQueryClient();
+  const search = Route.useSearch();
+  const navigate = Route.useNavigate();
+  const [scheduleId, setScheduleId] = useState<string | null>(null);
 
   const { data: samplePoints = [] } = useQuery({
     queryKey: ["sample_points"],
@@ -151,25 +165,18 @@ function SampleEntry() {
     setReadings({});
   };
 
-  async function findSample() {
-    if (!searchPoint || !searchNumber) {
-      toast.error("Pick a sample point and sample number.");
-      return;
-    }
+  async function loadSample(pointId: string, number: string): Promise<boolean> {
     const { data, error } = await supabase
       .from("samples")
       .select("*")
-      .eq("sample_point_id", searchPoint)
-      .eq("sample_number", searchNumber)
+      .eq("sample_point_id", pointId)
+      .eq("sample_number", number)
       .maybeSingle();
     if (error) {
       toast.error(error.message);
-      return;
+      return false;
     }
-    if (!data) {
-      toast.error("Sample not found.");
-      return;
-    }
+    if (!data) return false;
     const s = data as SampleRow;
     setActiveSampleId(s.id);
     setSamplePointId(s.sample_point_id);
@@ -181,8 +188,32 @@ function SampleEntry() {
     setDateAnalyzed(s.date_analyzed ?? "");
     setStatus((s.status as SampleStatus) ?? "");
     setReadings({});
-    toast.success(`Loaded sample ${s.sample_number}`);
+    return true;
   }
+
+  async function findSample() {
+    if (!searchPoint || !searchNumber) {
+      toast.error("Pick a sample point and sample number.");
+      return;
+    }
+    const ok = await loadSample(searchPoint, searchNumber);
+    if (!ok) toast.error("Sample not found.");
+    else toast.success(`Loaded sample ${searchNumber}`);
+  }
+
+  // Apply incoming search params from Sample Schedule navigation
+  useEffect(() => {
+    if (search.scheduleId) setScheduleId(search.scheduleId);
+    else setScheduleId(null);
+    (async () => {
+      if (search.pointId && search.sampleNumber) {
+        await loadSample(search.pointId, search.sampleNumber);
+      } else if (search.pointId) {
+        setSamplePointId(search.pointId);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search.scheduleId, search.pointId, search.sampleNumber]);
 
   async function addSamplePoint() {
     if (!newPointName.trim()) return;
@@ -267,11 +298,33 @@ function SampleEntry() {
         toast.error(`Inventory: ${e.message}`);
       }
     }
+    await linkToSchedule(sampleNumber);
     toast.success("Sample saved");
     qc.invalidateQueries({ queryKey: ["data_view"] });
     qc.invalidateQueries({ queryKey: ["sample_numbers_for_point"] });
     qc.invalidateQueries({ queryKey: ["inventory_items"] });
     qc.invalidateQueries({ queryKey: ["sample_inventory_usage"] });
+  }
+
+  async function linkToSchedule(num: string) {
+    if (!scheduleId) return;
+    const { error } = await supabase
+      .from("sample_schedules")
+      .update({ sample_number: num, status: "Lab" })
+      .eq("id", scheduleId);
+    if (error) {
+      toast.error(`Schedule: ${error.message}`);
+      return;
+    }
+    setStatus("Lab");
+    qc.invalidateQueries({ queryKey: ["sample_schedules"] });
+    qc.invalidateQueries({ queryKey: ["sample_schedules_view"] });
+    // Keep URL in sync so re-clicking the row loads this sample
+    navigate({
+      to: "/samples",
+      search: { scheduleId, pointId: samplePointId, sampleNumber: num },
+      replace: true,
+    });
   }
 
   async function saveAsSample() {
@@ -334,6 +387,7 @@ function SampleEntry() {
 
     setActiveSampleId(newId);
     setSampleNumber(newNumber);
+    await linkToSchedule(newNumber);
     toast.success(`Saved as ${newNumber}`);
     qc.invalidateQueries({ queryKey: ["data_view"] });
     qc.invalidateQueries({ queryKey: ["inventory_items"] });

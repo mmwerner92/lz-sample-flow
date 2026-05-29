@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,10 +22,12 @@ type ScheduleRow = {
   sample_point_id: string;
   time_of_day: string;
   status: string;
+  sample_number: string | null;
   next_trigger_at: string;
 };
 
 function SampleScheduleView() {
+  const navigate = useNavigate();
   const { data: samplePoints = [] } = useQuery({
     queryKey: ["sample_points"],
     queryFn: async () => {
@@ -50,11 +52,24 @@ function SampleScheduleView() {
   const pointName = (id: string) =>
     samplePoints.find((p) => p.id === id)?.name ?? "—";
 
+  const openSchedule = (s: ScheduleRow) => {
+    navigate({
+      to: "/samples",
+      search: {
+        scheduleId: s.id,
+        pointId: s.sample_point_id,
+        ...(s.sample_number ? { sampleNumber: s.sample_number } : {}),
+      },
+    });
+  };
+
   return (
     <div className="flex flex-col gap-4">
       <div>
         <h1 className="text-xl font-semibold tracking-tight">Sample Schedule</h1>
-        <p className="text-xs text-muted-foreground">Currently scheduled samples.</p>
+        <p className="text-xs text-muted-foreground">
+          Currently scheduled samples. Click a row to open in Sample Entry.
+        </p>
       </div>
 
       <Card>
@@ -67,6 +82,7 @@ function SampleScheduleView() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Sample Point</TableHead>
+                  <TableHead>Sample Number</TableHead>
                   <TableHead>Time</TableHead>
                   <TableHead>Status</TableHead>
                 </TableRow>
@@ -74,14 +90,21 @@ function SampleScheduleView() {
               <TableBody>
                 {schedules.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={3} className="text-center text-xs text-muted-foreground py-6">
+                    <TableCell colSpan={4} className="text-center text-xs text-muted-foreground py-6">
                       No scheduled samples.
                     </TableCell>
                   </TableRow>
                 )}
                 {schedules.map((s) => (
-                  <TableRow key={s.id}>
+                  <TableRow
+                    key={s.id}
+                    className="cursor-pointer"
+                    onClick={() => openSchedule(s)}
+                  >
                     <TableCell>{pointName(s.sample_point_id)}</TableCell>
+                    <TableCell className="font-mono">
+                      {s.sample_number ?? <span className="text-muted-foreground">—</span>}
+                    </TableCell>
                     <TableCell className="font-mono">{s.time_of_day.slice(0, 5)}</TableCell>
                     <TableCell>{s.status}</TableCell>
                   </TableRow>

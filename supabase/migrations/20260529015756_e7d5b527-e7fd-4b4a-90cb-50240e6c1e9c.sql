@@ -1,0 +1,1 @@
+ALTER TABLE public.sample_schedules ADD COLUMN IF NOT EXISTS sample_number text;
