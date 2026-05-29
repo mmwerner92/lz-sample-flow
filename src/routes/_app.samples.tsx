@@ -231,7 +231,7 @@ function SampleEntry() {
     qc.invalidateQueries({ queryKey: ["sample_inventory_usage"] });
   }
 
-  }
+
 
   async function saveAsSample() {
     if (!samplePointId) {
