@@ -66,6 +66,9 @@ function genSampleNumber() {
 function SampleEntry() {
   const { user, profile } = useAuth();
   const qc = useQueryClient();
+  const search = Route.useSearch();
+  const navigate = Route.useNavigate();
+  const [scheduleId, setScheduleId] = useState<string | null>(null);
 
   const { data: samplePoints = [] } = useQuery({
     queryKey: ["sample_points"],
