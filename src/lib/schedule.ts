@@ -40,7 +40,7 @@ export function computeNextTrigger(
     return next;
   }
 
-  }
+
 
   // No prior trigger — first occurrence at/after `from`
   if (next <= from) {
