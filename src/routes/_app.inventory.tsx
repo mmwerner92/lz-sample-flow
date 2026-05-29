@@ -379,7 +379,7 @@ function ItemForm({
 
       <section>
         <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Stock</div>
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
           {num("Lab stock", "lab_stock")}
           {num("Warehouse stock", "warehouse_stock")}
           {num("In-use", "in_use")}
