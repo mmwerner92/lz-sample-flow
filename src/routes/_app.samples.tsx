@@ -94,6 +94,7 @@ function SampleEntry() {
       return data as Method[];
     },
   });
+  const [dateAnalyzed, setDateAnalyzed] = useState(todayISO());
 
   const [samplePointId, setSamplePointId] = useState<string>("");
   const [sampleNumber, setSampleNumber] = useState<string>(genSampleNumber());
