@@ -221,11 +221,16 @@ function SampleEntry() {
           .upsert(rows, { onConflict: "sample_id,method_field_id" });
         if (error) { toast.error(error.message); return; }
       }
+      try { await applyMethodInventoryUsage(sampleId!, selectedMethodId, user?.id ?? null); }
+      catch (e: any) { toast.error(`Inventory: ${e.message}`); }
     }
-    toast.success("Sample saved");
     toast.success("Sample saved");
     qc.invalidateQueries({ queryKey: ["data_view"] });
     qc.invalidateQueries({ queryKey: ["sample_numbers_for_point"] });
+    qc.invalidateQueries({ queryKey: ["inventory_items"] });
+    qc.invalidateQueries({ queryKey: ["sample_inventory_usage"] });
+  }
+
   }
 
   async function saveAsSample() {
