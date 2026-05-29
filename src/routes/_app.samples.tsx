@@ -298,11 +298,33 @@ function SampleEntry() {
         toast.error(`Inventory: ${e.message}`);
       }
     }
+    await linkToSchedule(sampleNumber);
     toast.success("Sample saved");
     qc.invalidateQueries({ queryKey: ["data_view"] });
     qc.invalidateQueries({ queryKey: ["sample_numbers_for_point"] });
     qc.invalidateQueries({ queryKey: ["inventory_items"] });
     qc.invalidateQueries({ queryKey: ["sample_inventory_usage"] });
+  }
+
+  async function linkToSchedule(num: string) {
+    if (!scheduleId) return;
+    const { error } = await supabase
+      .from("sample_schedules")
+      .update({ sample_number: num, status: "Lab" })
+      .eq("id", scheduleId);
+    if (error) {
+      toast.error(`Schedule: ${error.message}`);
+      return;
+    }
+    setStatus("Lab");
+    qc.invalidateQueries({ queryKey: ["sample_schedules"] });
+    qc.invalidateQueries({ queryKey: ["sample_schedules_view"] });
+    // Keep URL in sync so re-clicking the row loads this sample
+    navigate({
+      to: "/samples",
+      search: { scheduleId, pointId: samplePointId, sampleNumber: num },
+      replace: true,
+    });
   }
 
   async function saveAsSample() {
