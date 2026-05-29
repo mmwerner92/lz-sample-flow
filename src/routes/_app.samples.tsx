@@ -314,6 +314,7 @@ function SampleEntry() {
               <Trash2 className="h-4 w-4 mr-1" />Delete
             </Button>
           )}
+          <Button variant="outline" size="sm" onClick={saveAsSample}><Copy className="h-4 w-4 mr-1" />Save As</Button>
           <Button size="sm" onClick={saveSample}><Save className="h-4 w-4 mr-1" />Save</Button>
         </div>
       </div>
