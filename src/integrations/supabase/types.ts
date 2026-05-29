@@ -14,6 +14,99 @@ export type Database = {
   }
   public: {
     Tables: {
+      inventory_items: {
+        Row: {
+          cost_per_item: number | null
+          created_at: string
+          date_of_last_order: string | null
+          days_per_reorder: number | null
+          description: string | null
+          designation: string | null
+          expiry: string | null
+          id: string
+          in_use: number
+          in_use_level: number | null
+          item_discontinued: boolean
+          item_name: string
+          item_number: string | null
+          item_reorder_quantity: number | null
+          items_per_pk: number | null
+          kit_number: string | null
+          lab_location: string | null
+          lab_stock: number
+          lot_number: string | null
+          max_val: number | null
+          median: number | null
+          min_val: number | null
+          quantity_last_ordered: number | null
+          routine: boolean
+          updated_at: string
+          vendor: string | null
+          warehouse_location: string | null
+          warehouse_stock: number
+        }
+        Insert: {
+          cost_per_item?: number | null
+          created_at?: string
+          date_of_last_order?: string | null
+          days_per_reorder?: number | null
+          description?: string | null
+          designation?: string | null
+          expiry?: string | null
+          id?: string
+          in_use?: number
+          in_use_level?: number | null
+          item_discontinued?: boolean
+          item_name: string
+          item_number?: string | null
+          item_reorder_quantity?: number | null
+          items_per_pk?: number | null
+          kit_number?: string | null
+          lab_location?: string | null
+          lab_stock?: number
+          lot_number?: string | null
+          max_val?: number | null
+          median?: number | null
+          min_val?: number | null
+          quantity_last_ordered?: number | null
+          routine?: boolean
+          updated_at?: string
+          vendor?: string | null
+          warehouse_location?: string | null
+          warehouse_stock?: number
+        }
+        Update: {
+          cost_per_item?: number | null
+          created_at?: string
+          date_of_last_order?: string | null
+          days_per_reorder?: number | null
+          description?: string | null
+          designation?: string | null
+          expiry?: string | null
+          id?: string
+          in_use?: number
+          in_use_level?: number | null
+          item_discontinued?: boolean
+          item_name?: string
+          item_number?: string | null
+          item_reorder_quantity?: number | null
+          items_per_pk?: number | null
+          kit_number?: string | null
+          lab_location?: string | null
+          lab_stock?: number
+          lot_number?: string | null
+          max_val?: number | null
+          median?: number | null
+          min_val?: number | null
+          quantity_last_ordered?: number | null
+          routine?: boolean
+          updated_at?: string
+          vendor?: string | null
+          warehouse_location?: string | null
+          warehouse_stock?: number
+        }
+        Relationships: []
+      }
       method_fields: {
         Row: {
           created_at: string
