@@ -13,6 +13,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppUsersRouteImport } from './routes/_app.users'
+import { Route as AppUsageRouteImport } from './routes/_app.usage'
 import { Route as AppSamplesRouteImport } from './routes/_app.samples'
 import { Route as AppMethodsRouteImport } from './routes/_app.methods'
 import { Route as AppInventoryRouteImport } from './routes/_app.inventory'
@@ -35,6 +36,11 @@ const IndexRoute = IndexRouteImport.update({
 const AppUsersRoute = AppUsersRouteImport.update({
   id: '/users',
   path: '/users',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppUsageRoute = AppUsageRouteImport.update({
+  id: '/usage',
+  path: '/usage',
   getParentRoute: () => AppRoute,
 } as any)
 const AppSamplesRoute = AppSamplesRouteImport.update({
@@ -65,6 +71,7 @@ export interface FileRoutesByFullPath {
   '/inventory': typeof AppInventoryRoute
   '/methods': typeof AppMethodsRoute
   '/samples': typeof AppSamplesRoute
+  '/usage': typeof AppUsageRoute
   '/users': typeof AppUsersRoute
 }
 export interface FileRoutesByTo {
@@ -74,6 +81,7 @@ export interface FileRoutesByTo {
   '/inventory': typeof AppInventoryRoute
   '/methods': typeof AppMethodsRoute
   '/samples': typeof AppSamplesRoute
+  '/usage': typeof AppUsageRoute
   '/users': typeof AppUsersRoute
 }
 export interface FileRoutesById {
@@ -85,6 +93,7 @@ export interface FileRoutesById {
   '/_app/inventory': typeof AppInventoryRoute
   '/_app/methods': typeof AppMethodsRoute
   '/_app/samples': typeof AppSamplesRoute
+  '/_app/usage': typeof AppUsageRoute
   '/_app/users': typeof AppUsersRoute
 }
 export interface FileRouteTypes {
@@ -96,6 +105,7 @@ export interface FileRouteTypes {
     | '/inventory'
     | '/methods'
     | '/samples'
+    | '/usage'
     | '/users'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -105,6 +115,7 @@ export interface FileRouteTypes {
     | '/inventory'
     | '/methods'
     | '/samples'
+    | '/usage'
     | '/users'
   id:
     | '__root__'
@@ -115,6 +126,7 @@ export interface FileRouteTypes {
     | '/_app/inventory'
     | '/_app/methods'
     | '/_app/samples'
+    | '/_app/usage'
     | '/_app/users'
   fileRoutesById: FileRoutesById
 }
@@ -154,6 +166,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppUsersRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/usage': {
+      id: '/_app/usage'
+      path: '/usage'
+      fullPath: '/usage'
+      preLoaderRoute: typeof AppUsageRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/samples': {
       id: '/_app/samples'
       path: '/samples'
@@ -190,6 +209,7 @@ interface AppRouteChildren {
   AppInventoryRoute: typeof AppInventoryRoute
   AppMethodsRoute: typeof AppMethodsRoute
   AppSamplesRoute: typeof AppSamplesRoute
+  AppUsageRoute: typeof AppUsageRoute
   AppUsersRoute: typeof AppUsersRoute
 }
 
@@ -198,6 +218,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppInventoryRoute: AppInventoryRoute,
   AppMethodsRoute: AppMethodsRoute,
   AppSamplesRoute: AppSamplesRoute,
+  AppUsageRoute: AppUsageRoute,
   AppUsersRoute: AppUsersRoute,
 }
 
@@ -211,3 +232,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
