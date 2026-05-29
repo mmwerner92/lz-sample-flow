@@ -320,15 +320,16 @@ function SampleEntry() {
 
   async function linkToSchedule(num: string) {
     if (!scheduleId) return;
+    const nextStatus: SampleStatus = (status as SampleStatus) || "Lab";
     const { error } = await supabase
       .from("sample_schedules")
-      .update({ sample_number: num, status: "Lab" })
+      .update({ sample_number: num, status: nextStatus })
       .eq("id", scheduleId);
     if (error) {
       toast.error(`Schedule: ${error.message}`);
       return;
     }
-    setStatus("Lab");
+    if (!status) setStatus(nextStatus);
     qc.invalidateQueries({ queryKey: ["sample_schedules"] });
     qc.invalidateQueries({ queryKey: ["sample_schedules_view"] });
     // Keep URL in sync so re-clicking the row loads this sample
@@ -338,6 +339,7 @@ function SampleEntry() {
       replace: true,
     });
   }
+
 
   async function saveAsSample() {
     if (!samplePointId) {
