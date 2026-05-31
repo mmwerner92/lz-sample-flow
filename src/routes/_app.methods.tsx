@@ -201,17 +201,18 @@ function Methods() {
                   {workingFields.length > 0 && (
                     <div className="overflow-x-auto -mx-2">
                       <div className="space-y-2 min-w-[560px] px-2">
-                        <div className="grid grid-cols-[1fr_120px_100px_100px_40px] gap-2 px-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                          <div>Description</div><div>Unit</div><div>Min</div><div>Max</div><div></div>
+                        <div className="grid grid-cols-[1fr_120px_140px_100px_100px_40px] gap-2 px-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                          <div>Description</div><div>Unit</div><div>PI Point</div><div>Min</div><div>Max</div><div></div>
                         </div>
                         {workingFields.map((f) => (
                           <div key={f.id} className="space-y-1">
-                            <div className="grid grid-cols-[1fr_120px_100px_100px_40px] gap-2 items-center">
+                            <div className="grid grid-cols-[1fr_120px_140px_100px_100px_40px] gap-2 items-center">
                               <div className="flex items-center gap-2">
                                 {f.is_calculated && <Calculator className="h-3.5 w-3.5 text-muted-foreground shrink-0" />}
                                 <Input value={f.description} onChange={(e) => updateField(f.id, { description: e.target.value })} placeholder={f.is_calculated ? "e.g. Average" : "e.g. Acid number"} />
                               </div>
                               <Input value={f.unit ?? ""} onChange={(e) => updateField(f.id, { unit: e.target.value })} placeholder="mg KOH/g" />
+                              <Input className="font-mono text-xs" value={f.pi_point ?? ""} onChange={(e) => updateField(f.id, { pi_point: e.target.value })} placeholder="PI tag" />
                               <Input className="font-mono" value={f.min_val ?? ""} onChange={(e) => updateField(f.id, { min_val: e.target.value === "" ? null : Number(e.target.value) })} inputMode="decimal" />
                               <Input className="font-mono" value={f.max_val ?? ""} onChange={(e) => updateField(f.id, { max_val: e.target.value === "" ? null : Number(e.target.value) })} inputMode="decimal" />
                               <Button variant="ghost" size="icon" onClick={() => removeField(f.id)}><Trash2 className="h-4 w-4 text-muted-foreground" /></Button>
