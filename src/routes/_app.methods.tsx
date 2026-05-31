@@ -121,6 +121,7 @@ function Methods() {
         position: i,
         is_calculated: f.is_calculated,
         formula: f.is_calculated ? (f.formula ?? "") : null,
+        pi_point: f.pi_point && f.pi_point.trim() !== "" ? f.pi_point.trim() : null,
       };
       if (f.id.startsWith("new-")) {
         const { error } = await supabase.from("method_fields").insert(payload);
