@@ -1,0 +1,1 @@
+ALTER TABLE public.method_fields ADD COLUMN pi_point text;
