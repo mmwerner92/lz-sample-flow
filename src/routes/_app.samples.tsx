@@ -192,7 +192,11 @@ function SampleEntry() {
     setActiveSampleId(s.id);
     setSamplePointId(s.sample_point_id);
     setSampleNumber(s.sample_number);
-    setSampledAt(s.sampled_at ? s.sampled_at.slice(0, 16) : "");
+    setSampledAt(s.sampled_at ? (() => {
+      const d = new Date(s.sampled_at);
+      const pad = (n: number) => String(n).padStart(2, "0");
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    })() : "");
     setColor(s.color ?? "");
     setOilVisibility(s.oil_visibility ?? "");
     setDateAnalyzed(s.date_analyzed ?? todayISO());
