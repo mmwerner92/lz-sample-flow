@@ -117,6 +117,7 @@ export type Database = {
           max_val: number | null
           method_id: string
           min_val: number | null
+          pi_point: string | null
           position: number
           unit: string | null
         }
@@ -129,6 +130,7 @@ export type Database = {
           max_val?: number | null
           method_id: string
           min_val?: number | null
+          pi_point?: string | null
           position?: number
           unit?: string | null
         }
@@ -141,6 +143,7 @@ export type Database = {
           max_val?: number | null
           method_id?: string
           min_val?: number | null
+          pi_point?: string | null
           position?: number
           unit?: string | null
         }
