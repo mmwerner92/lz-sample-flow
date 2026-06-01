@@ -159,8 +159,8 @@ function SampleEntry() {
           methodFields.map((f) => f.id),
         );
       const map: Record<string, string> = {};
-      (data ?? []).forEach((r: { method_field_id: string; value: number | null }) => {
-        map[r.method_field_id] = r.value == null ? "" : String(r.value);
+      (data ?? []).forEach((r: { method_field_id: string; value: string | null }) => {
+        map[r.method_field_id] = r.value == null ? "" : r.value;
       });
       setReadings((prev) => ({ ...prev, ...map }));
     })();
