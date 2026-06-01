@@ -236,15 +236,15 @@ function DataView() {
     return arr;
   }, [filtered, sort]);
 
-  const metaCols: { key: keyof Row; label: string }[] = [
-    { key: "sample_number", label: "Sample #" },
-    { key: "sample_point", label: "Sample Point" },
-    { key: "analyst", label: "Analyst" },
-    { key: "sampled_at", label: "Sampled" },
-    { key: "date_analyzed", label: "Analyzed" },
-    { key: "color", label: "Color" },
-    { key: "oil_visibility", label: "Oil Vis." },
-    { key: "particulates", label: "Particulates" },
+  const metaCols: { key: keyof Row; label: string; width: number; sticky?: number }[] = [
+    { key: "sample_number", label: "Sample #", width: 140, sticky: 0 },
+    { key: "sampled_at", label: "Sampled", width: 150, sticky: 140 },
+    { key: "sample_point", label: "Sample Point", width: 160, sticky: 290 },
+    { key: "analyst", label: "Analyst", width: 140 },
+    { key: "date_analyzed", label: "Analyzed", width: 120 },
+    { key: "color", label: "Color", width: 100 },
+    { key: "oil_visibility", label: "Oil Vis.", width: 100 },
+    { key: "particulates", label: "Particulates", width: 180 },
   ];
 
   function toggleSort(k: string) {
@@ -262,8 +262,11 @@ function DataView() {
     const lines = [headerTop.join(",")];
     sorted.forEach((r) => {
       const cells: string[] = [
-        r.sample_number, r.sample_point, r.analyst,
-        r.sampled_at ?? "", r.date_analyzed ?? "",
+        r.sample_number,
+        r.sampled_at ?? "",
+        r.sample_point,
+        r.analyst,
+        r.date_analyzed ?? "",
         r.color ?? "", r.oil_visibility ?? "", r.particulates ?? "",
         ...visibleMethods.flatMap((m) =>
           m.fields.map((f) => {
@@ -315,13 +318,22 @@ function DataView() {
 
           <div className="rounded-md border overflow-auto">
             <table className="w-full text-sm border-collapse">
-              <thead className="bg-muted/60 text-muted-foreground sticky top-0">
+              <thead className="text-muted-foreground">
                 <tr>
                   {metaCols.map((c) => (
                     <th
                       key={c.key as string}
                       rowSpan={2}
-                      className="text-left font-medium px-3 py-2 whitespace-nowrap border-b align-bottom"
+                      style={{
+                        width: c.width,
+                        minWidth: c.width,
+                        ...(c.sticky !== undefined ? { left: c.sticky } : {}),
+                      }}
+                      className={`text-left font-medium px-3 py-2 whitespace-nowrap border-b align-bottom bg-muted/60 ${
+                        c.sticky !== undefined ? "sticky z-30" : "sticky top-0 z-20"
+                      } ${c.sticky !== undefined ? "top-0" : ""} ${
+                        c.sticky !== undefined && c.sticky > 0 ? "border-l" : ""
+                      }`}
                     >
                       <button className="inline-flex items-center gap-1 hover:text-foreground" onClick={() => toggleSort(c.key as string)}>
                         {c.label}<ArrowUpDown className="h-3 w-3 opacity-60" />
@@ -332,7 +344,7 @@ function DataView() {
                     <th
                       key={m.id}
                       colSpan={m.fields.length}
-                      className="text-center font-semibold text-foreground px-3 py-2 border-b border-l whitespace-nowrap"
+                      className="text-center font-semibold text-foreground px-3 py-2 border-b border-l whitespace-nowrap bg-muted/60 sticky top-0 z-10"
                     >
                       {m.name}
                     </th>
@@ -343,7 +355,8 @@ function DataView() {
                     m.fields.map((f, idx) => (
                       <th
                         key={f.id}
-                        className={`text-left font-medium px-3 py-2 whitespace-nowrap border-b text-xs ${idx === 0 ? "border-l" : ""}`}
+                        className={`text-left font-medium px-3 py-2 whitespace-nowrap border-b text-xs bg-muted/60 sticky z-10 ${idx === 0 ? "border-l" : ""}`}
+                        style={{ top: 37 }}
                       >
                         {f.description}
                         {f.unit ? <span className="text-muted-foreground"> ({f.unit})</span> : null}
@@ -360,11 +373,11 @@ function DataView() {
                   <tr><td colSpan={totalCols} className="px-3 py-12 text-center text-muted-foreground">No samples found.</td></tr>
                 )}
                 {sorted.map((r) => (
-                  <tr key={r.id} className="border-t hover:bg-muted/40">
-                    <td className="px-3 py-2 font-mono">{r.sample_number}</td>
-                    <td className="px-3 py-2">{r.sample_point}</td>
+                  <tr key={r.id} className="border-t hover:bg-muted/40 group">
+                    <td className="px-3 py-2 font-mono sticky left-0 z-10 bg-background group-hover:bg-muted/40" style={{ width: 140, minWidth: 140 }}>{r.sample_number}</td>
+                    <td className="px-3 py-2 whitespace-nowrap text-xs text-muted-foreground sticky z-10 bg-background group-hover:bg-muted/40 border-l" style={{ left: 140, width: 150, minWidth: 150 }}>{r.sampled_at?.replace("T", " ").slice(0, 16) ?? "—"}</td>
+                    <td className="px-3 py-2 sticky z-10 bg-background group-hover:bg-muted/40 border-l" style={{ left: 290, width: 160, minWidth: 160 }}>{r.sample_point}</td>
                     <td className="px-3 py-2">{r.analyst}</td>
-                    <td className="px-3 py-2 whitespace-nowrap text-xs text-muted-foreground">{r.sampled_at?.replace("T", " ").slice(0, 16) ?? "—"}</td>
                     <td className="px-3 py-2 whitespace-nowrap text-xs text-muted-foreground">{r.date_analyzed ?? "—"}</td>
                     <td className="px-3 py-2">{r.color ?? "—"}</td>
                     <td className="px-3 py-2">{r.oil_visibility ?? "—"}</td>
