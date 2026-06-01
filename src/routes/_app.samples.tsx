@@ -577,14 +577,6 @@ function SampleEntry() {
                 />
               </div>
               <div className="space-y-1">
-                <Label className="text-xs">Color</Label>
-                <Input className="h-9" value={color} onChange={(e) => setColor(e.target.value)} />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">Oil Visibility</Label>
-                <Input className="h-9" value={oilVisibility} onChange={(e) => setOilVisibility(e.target.value)} />
-              </div>
-              <div className="space-y-1">
                 <Label className="text-xs">Date Analyzed</Label>
                 <Input
                   type="date"
@@ -592,7 +584,14 @@ function SampleEntry() {
                   value={dateAnalyzed}
                   onChange={(e) => setDateAnalyzed(e.target.value)}
                 />
-
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Color</Label>
+                <Input className="h-9" value={color} onChange={(e) => setColor(e.target.value)} />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Oil Visibility</Label>
+                <Input className="h-9" value={oilVisibility} onChange={(e) => setOilVisibility(e.target.value)} />
               </div>
               <div className="space-y-1">
                 <Label className="text-xs">Particulates</Label>
