@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Copy, Plus, Save, Search, Trash2 } from "lucide-react";
+import { Copy, Files, Plus, Save, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { evalFormula } from "@/lib/formula";
 import { applyMethodInventoryUsage } from "@/lib/inventory-usage";
@@ -413,6 +413,73 @@ function SampleEntry() {
     qc.invalidateQueries({ queryKey: ["sample_inventory_usage"] });
   }
 
+  async function duplicateSample() {
+    if (!samplePointId || !sampleNumber) {
+      toast.error("Sample point and number are required.");
+      return;
+    }
+    const newNumber = `${sampleNumber}_1`;
+    const payload = {
+      sample_point_id: samplePointId,
+      sample_number: newNumber,
+      analyst_id: user!.id,
+      sampled_at: sampledAt ? new Date(sampledAt).toISOString() : null,
+      color: color || null,
+      oil_visibility: oilVisibility || null,
+      particulates: particulates || null,
+      date_analyzed: dateAnalyzed || null,
+      status: status || null,
+    };
+    const { data, error } = await supabase.from("samples").insert(payload).select("id").single();
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    const newId = data.id as string;
+
+    if (selectedMethodId && methodFields.length) {
+      const valuesByDesc: Record<string, number> = {};
+      methodFields.forEach((f) => {
+        if (!f.is_calculated) {
+          const v = readings[f.id];
+          if (v !== undefined && v !== "" && !Number.isNaN(Number(v))) {
+            valuesByDesc[f.description] = Number(v);
+          }
+        }
+      });
+      const rows = methodFields
+        .map((f) => {
+          if (f.is_calculated) {
+            const computed = evalFormula(f.formula ?? "", valuesByDesc);
+            if (computed == null) return null;
+            return { sample_id: newId, method_field_id: f.id, value: computed };
+          }
+          const v = readings[f.id];
+          if (v === undefined || v === "") return null;
+          return { sample_id: newId, method_field_id: f.id, value: Number(v) };
+        })
+        .filter((r): r is { sample_id: string; method_field_id: string; value: number } => r !== null);
+      if (rows.length) {
+        await supabase.from("sample_readings").insert(rows);
+      }
+    }
+    if (selectedMethodId) {
+      try {
+        await applyMethodInventoryUsage(newId, selectedMethodId, user?.id ?? null);
+      } catch (e: any) {
+        toast.error(`Inventory: ${e.message}`);
+      }
+    }
+
+    setActiveSampleId(newId);
+    setSampleNumber(newNumber);
+    toast.success(`Duplicated as ${newNumber}`);
+    qc.invalidateQueries({ queryKey: ["data_view"] });
+    qc.invalidateQueries({ queryKey: ["inventory_items"] });
+    qc.invalidateQueries({ queryKey: ["sample_inventory_usage"] });
+    qc.invalidateQueries({ queryKey: ["sample_numbers_for_point"] });
+  }
+
   async function deleteSample() {
     if (!activeSampleId) return;
     if (!confirm("Delete this sample and all its readings?")) return;
@@ -463,6 +530,12 @@ function SampleEntry() {
             >
               <Trash2 className="h-4 w-4 mr-1" />
               Delete
+            </Button>
+          )}
+          {activeSampleId && (
+            <Button variant="outline" size="sm" onClick={duplicateSample}>
+              <Files className="h-4 w-4 mr-1" />
+              Duplicate
             </Button>
           )}
           <Button variant="outline" size="sm" onClick={saveAsSample}>
