@@ -16,6 +16,7 @@ import { ChevronDown, CalendarIcon, Save, Trash2 } from "lucide-react";
 import { format, subDays, parseISO, startOfDay, startOfWeek, startOfMonth } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { extractNumeric } from "@/lib/formula";
 import {
   ResponsiveContainer,
   LineChart,
