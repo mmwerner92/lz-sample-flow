@@ -262,8 +262,11 @@ function DataView() {
     const lines = [headerTop.join(",")];
     sorted.forEach((r) => {
       const cells: string[] = [
-        r.sample_number, r.sample_point, r.analyst,
-        r.sampled_at ?? "", r.date_analyzed ?? "",
+        r.sample_number,
+        r.sampled_at ?? "",
+        r.sample_point,
+        r.analyst,
+        r.date_analyzed ?? "",
         r.color ?? "", r.oil_visibility ?? "", r.particulates ?? "",
         ...visibleMethods.flatMap((m) =>
           m.fields.map((f) => {
