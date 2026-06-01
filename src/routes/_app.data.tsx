@@ -37,7 +37,7 @@ function DataView() {
         .select(`
           id, sample_number, sampled_at, date_analyzed, color, oil_visibility, particulates, analyst_id,
           sample_points!inner(name),
-          sample_readings(value, method_fields!inner(description, unit, methods!inner(name)))
+          sample_readings(value, method_fields!inner(description, unit, hidden, methods!inner(name)))
         `)
         .order("sampled_at", { ascending: false })
         .limit(1000);
