@@ -49,7 +49,8 @@ function UsersPage() {
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setNewRole] = useState<"admin" | "user">("user");
+  const [role, setNewRole] = useState<"admin" | "editor" | "operations" | "user">("user");
+
 
   const createMut = useMutation({
     mutationFn: () =>
