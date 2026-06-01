@@ -283,13 +283,34 @@ function ImportsPage() {
     let updated = 0;
     let failed = 0;
     try {
+      // Auto-create any sample points referenced but not found
+      const newPointNames = Array.from(
+        new Set(
+          rows
+            .filter((r) => r.action !== "error" && !r.resolvedSamplePointId && r.sample_point_name)
+            .map((r) => r.sample_point_name),
+        ),
+      );
+      const createdPointMap = new Map<string, string>();
+      if (newPointNames.length > 0) {
+        const { data, error } = await supabase
+          .from("sample_points")
+          .insert(newPointNames.map((name) => ({ name })))
+          .select("id, name");
+        if (error) throw error;
+        (data ?? []).forEach((p) => createdPointMap.set(p.name.toLowerCase(), p.id as string));
+      }
+
       for (const r of rows) {
         if (r.action === "error") continue;
         try {
+          const samplePointId =
+            r.resolvedSamplePointId ?? createdPointMap.get(r.sample_point_name.toLowerCase()) ?? null;
+          if (!samplePointId) throw new Error("Could not resolve sample point");
           const samplePayload = {
             sample_number: r.sample_number,
             sampled_at: r.sampled_at,
-            sample_point_id: r.resolvedSamplePointId!,
+            sample_point_id: samplePointId,
             analyst_id: r.resolvedAnalystId, // null if missing — labelled "!Missing!" in UI
             date_analyzed: r.date_analyzed,
             color: r.color,
