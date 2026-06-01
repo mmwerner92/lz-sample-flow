@@ -64,7 +64,7 @@ function UsersPage() {
   });
 
   const roleMut = useMutation({
-    mutationFn: (v: { user_id: string; role: "admin" | "user" }) =>
+    mutationFn: (v: { user_id: string; role: "admin" | "editor" | "operations" | "user" }) =>
       setRole({ data: v }),
     onSuccess: () => {
       toast.success("Role updated");
@@ -72,6 +72,7 @@ function UsersPage() {
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
 
   const delMut = useMutation({
     mutationFn: (user_id: string) => del({ data: { user_id } }),
