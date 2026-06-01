@@ -22,6 +22,7 @@ import { Route as AppMethodsRouteImport } from './routes/_app.methods'
 import { Route as AppInventoryRouteImport } from './routes/_app.inventory'
 import { Route as AppImportsRouteImport } from './routes/_app.imports'
 import { Route as AppDataRouteImport } from './routes/_app.data'
+import { Route as AppAnalyticsRouteImport } from './routes/_app.analytics'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -87,11 +88,17 @@ const AppDataRoute = AppDataRouteImport.update({
   path: '/data',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAnalyticsRoute = AppAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/data-popup': typeof DataPopupRoute
   '/login': typeof LoginRoute
+  '/analytics': typeof AppAnalyticsRoute
   '/data': typeof AppDataRoute
   '/imports': typeof AppImportsRoute
   '/inventory': typeof AppInventoryRoute
@@ -106,6 +113,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/data-popup': typeof DataPopupRoute
   '/login': typeof LoginRoute
+  '/analytics': typeof AppAnalyticsRoute
   '/data': typeof AppDataRoute
   '/imports': typeof AppImportsRoute
   '/inventory': typeof AppInventoryRoute
@@ -122,6 +130,7 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/data-popup': typeof DataPopupRoute
   '/login': typeof LoginRoute
+  '/_app/analytics': typeof AppAnalyticsRoute
   '/_app/data': typeof AppDataRoute
   '/_app/imports': typeof AppImportsRoute
   '/_app/inventory': typeof AppInventoryRoute
@@ -138,6 +147,7 @@ export interface FileRouteTypes {
     | '/'
     | '/data-popup'
     | '/login'
+    | '/analytics'
     | '/data'
     | '/imports'
     | '/inventory'
@@ -152,6 +162,7 @@ export interface FileRouteTypes {
     | '/'
     | '/data-popup'
     | '/login'
+    | '/analytics'
     | '/data'
     | '/imports'
     | '/inventory'
@@ -167,6 +178,7 @@ export interface FileRouteTypes {
     | '/_app'
     | '/data-popup'
     | '/login'
+    | '/_app/analytics'
     | '/_app/data'
     | '/_app/imports'
     | '/_app/inventory'
@@ -278,10 +290,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDataRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/analytics': {
+      id: '/_app/analytics'
+      path: '/analytics'
+      fullPath: '/analytics'
+      preLoaderRoute: typeof AppAnalyticsRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AppRouteChildren {
+  AppAnalyticsRoute: typeof AppAnalyticsRoute
   AppDataRoute: typeof AppDataRoute
   AppImportsRoute: typeof AppImportsRoute
   AppInventoryRoute: typeof AppInventoryRoute
@@ -294,6 +314,7 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppAnalyticsRoute: AppAnalyticsRoute,
   AppDataRoute: AppDataRoute,
   AppImportsRoute: AppImportsRoute,
   AppInventoryRoute: AppInventoryRoute,
