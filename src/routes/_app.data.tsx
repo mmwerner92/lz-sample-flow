@@ -236,15 +236,15 @@ function DataView() {
     return arr;
   }, [filtered, sort]);
 
-  const metaCols: { key: keyof Row; label: string }[] = [
-    { key: "sample_number", label: "Sample #" },
-    { key: "sample_point", label: "Sample Point" },
-    { key: "analyst", label: "Analyst" },
-    { key: "sampled_at", label: "Sampled" },
-    { key: "date_analyzed", label: "Analyzed" },
-    { key: "color", label: "Color" },
-    { key: "oil_visibility", label: "Oil Vis." },
-    { key: "particulates", label: "Particulates" },
+  const metaCols: { key: keyof Row; label: string; width: number; sticky?: number }[] = [
+    { key: "sample_number", label: "Sample #", width: 140, sticky: 0 },
+    { key: "sampled_at", label: "Sampled", width: 150, sticky: 140 },
+    { key: "sample_point", label: "Sample Point", width: 160, sticky: 290 },
+    { key: "analyst", label: "Analyst", width: 140 },
+    { key: "date_analyzed", label: "Analyzed", width: 120 },
+    { key: "color", label: "Color", width: 100 },
+    { key: "oil_visibility", label: "Oil Vis.", width: 100 },
+    { key: "particulates", label: "Particulates", width: 180 },
   ];
 
   function toggleSort(k: string) {
