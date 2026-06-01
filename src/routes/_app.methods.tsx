@@ -40,8 +40,14 @@ type MethodField = { id: string; method_id: string; description: string; unit: s
 
 function Methods() {
   const qc = useQueryClient();
+  const { user } = useAuth();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [newMethodName, setNewMethodName] = useState("");
+  const [renaming, setRenaming] = useState(false);
+  const [renameValue, setRenameValue] = useState("");
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deleteBusy, setDeleteBusy] = useState(false);
 
   const { data: methods = [] } = useQuery({
     queryKey: ["methods"],
@@ -81,14 +87,36 @@ function Methods() {
     setDraftFields([]);
   }
 
-  async function deleteMethod() {
+  async function saveRename() {
     if (!selectedId) return;
-    if (!confirm("Delete this method and all its fields?")) return;
-    const { error } = await supabase.from("methods").delete().eq("id", selectedId);
+    const name = renameValue.trim();
+    if (!name) { toast.error("Name cannot be empty"); return; }
+    const { error } = await supabase.from("methods").update({ name }).eq("id", selectedId);
     if (error) { toast.error(error.message); return; }
+    toast.success("Method renamed");
+    setRenaming(false);
+    qc.invalidateQueries({ queryKey: ["methods"] });
+  }
+
+  async function confirmDelete() {
+    if (!selectedId || !user?.email) return;
+    if (!deletePassword) { toast.error("Password required"); return; }
+    setDeleteBusy(true);
+    const { error: authErr } = await supabase.auth.signInWithPassword({ email: user.email, password: deletePassword });
+    if (authErr) {
+      setDeleteBusy(false);
+      toast.error("Incorrect password");
+      return;
+    }
+    const { error } = await supabase.from("methods").delete().eq("id", selectedId);
+    setDeleteBusy(false);
+    if (error) { toast.error(error.message); return; }
+    setDeleteOpen(false);
+    setDeletePassword("");
     setSelectedId(null);
     setDraftFields([]);
     qc.invalidateQueries({ queryKey: ["methods"] });
+    toast.success("Method deleted");
   }
 
   function addField(calculated = false) {
