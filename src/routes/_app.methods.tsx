@@ -124,7 +124,7 @@ function Methods() {
     const list = draftFields.length ? draftFields : baseFields.map((f) => ({ ...f }));
     setDraftFields([
       ...list,
-      { id: `new-${Date.now()}`, method_id: selectedId, description: "", unit: "", min_val: null, max_val: null, position: list.length, is_calculated: calculated, formula: calculated ? "" : null, pi_point: null },
+      { id: `new-${Date.now()}`, method_id: selectedId, description: "", unit: "", min_val: null, max_val: null, position: list.length, is_calculated: calculated, formula: calculated ? "" : null, pi_point: null, hidden: false },
     ]);
   }
 
