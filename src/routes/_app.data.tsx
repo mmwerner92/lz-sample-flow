@@ -1,16 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowUpDown, Search, Download } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ArrowUpDown, Search, Download, ChevronDown } from "lucide-react";
 
 export const Route = createFileRoute("/_app/data")({
   head: () => ({ meta: [{ title: "Data View — LJ LIMS" }] }),
   component: DataView,
 });
+
+type MethodField = { id: string; description: string; unit: string | null; position: number };
+type Method = { id: string; name: string; fields: MethodField[] };
 
 type Row = {
   id: string;
@@ -20,14 +25,120 @@ type Row = {
   color: string | null;
   oil_visibility: string | null;
   particulates: string | null;
+  sample_point_id: string;
   sample_point: string;
   analyst: string;
-  readings: { method: string; field: string; unit: string | null; value: number | null }[];
+  readingByFieldId: Record<string, number | null>;
 };
+
+function MultiSelect({
+  label,
+  items,
+  selected,
+  onChange,
+}: {
+  label: string;
+  items: { id: string; name: string }[];
+  selected: Set<string>;
+  onChange: (next: Set<string>) => void;
+}) {
+  const allSelected = items.length > 0 && selected.size === items.length;
+  const summary =
+    selected.size === 0
+      ? "None"
+      : allSelected
+      ? "All"
+      : `${selected.size} selected`;
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="outline" size="sm" className="justify-between gap-2 min-w-[180px]">
+          <span className="text-xs text-muted-foreground">{label}:</span>
+          <span className="text-xs">{summary}</span>
+          <ChevronDown className="h-3 w-3 opacity-60" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-64 p-2" align="start">
+        <div className="flex items-center justify-between px-1 pb-2 border-b mb-2">
+          <span className="text-xs font-medium">{label}</span>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              className="text-xs text-primary hover:underline"
+              onClick={() => onChange(new Set(items.map((i) => i.id)))}
+            >
+              All
+            </button>
+            <button
+              type="button"
+              className="text-xs text-muted-foreground hover:underline"
+              onClick={() => onChange(new Set())}
+            >
+              None
+            </button>
+          </div>
+        </div>
+        <div className="max-h-64 overflow-auto space-y-1">
+          {items.length === 0 && <p className="text-xs text-muted-foreground px-1">No items.</p>}
+          {items.map((i) => {
+            const checked = selected.has(i.id);
+            return (
+              <label
+                key={i.id}
+                className="flex items-center gap-2 px-1 py-1 rounded hover:bg-muted cursor-pointer text-sm"
+              >
+                <Checkbox
+                  checked={checked}
+                  onCheckedChange={(v) => {
+                    const next = new Set(selected);
+                    if (v) next.add(i.id);
+                    else next.delete(i.id);
+                    onChange(next);
+                  }}
+                />
+                <span className="truncate">{i.name}</span>
+              </label>
+            );
+          })}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 function DataView() {
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<{ key: string; dir: "asc" | "desc" }>({ key: "sampled_at", dir: "desc" });
+  const [selectedMethods, setSelectedMethods] = useState<Set<string>>(new Set());
+  const [selectedPoints, setSelectedPoints] = useState<Set<string>>(new Set());
+
+  const { data: methods } = useQuery({
+    queryKey: ["data_view_methods"],
+    queryFn: async (): Promise<Method[]> => {
+      const { data, error } = await supabase
+        .from("methods")
+        .select("id, name, method_fields(id, description, unit, position, hidden)")
+        .order("name", { ascending: true });
+      if (error) throw error;
+      return (data ?? []).map((m) => ({
+        id: m.id as string,
+        name: m.name as string,
+        fields: ((m.method_fields as MethodField[] & { hidden: boolean }[]) ?? [])
+          .filter((f) => !(f as MethodField & { hidden: boolean }).hidden)
+          .sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
+          .map((f) => ({ id: f.id, description: f.description, unit: f.unit, position: f.position })),
+      }));
+    },
+  });
+
+  const { data: samplePoints } = useQuery({
+    queryKey: ["data_view_points"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("sample_points").select("id, name").order("name");
+      if (error) throw error;
+      return (data ?? []) as { id: string; name: string }[];
+    },
+  });
 
   const { data, isLoading } = useQuery({
     queryKey: ["data_view"],
@@ -35,9 +146,9 @@ function DataView() {
       const { data: samples, error } = await supabase
         .from("samples")
         .select(`
-          id, sample_number, sampled_at, date_analyzed, color, oil_visibility, particulates, analyst_id,
+          id, sample_number, sampled_at, date_analyzed, color, oil_visibility, particulates, analyst_id, sample_point_id,
           sample_points!inner(name),
-          sample_readings(value, method_fields!inner(description, unit, hidden, methods!inner(name)))
+          sample_readings(value, method_field_id)
         `)
         .order("sampled_at", { ascending: false })
         .limit(1000);
@@ -55,6 +166,10 @@ function DataView() {
 
       const rows: Row[] = (samples ?? []).map((s: Record<string, unknown>) => {
         const prof = profileMap.get(s.analyst_id as string);
+        const readingByFieldId: Record<string, number | null> = {};
+        ((s.sample_readings as Array<{ value: number | null; method_field_id: string }>) ?? []).forEach((r) => {
+          readingByFieldId[r.method_field_id] = r.value;
+        });
         return {
           id: s.id as string,
           sample_number: s.sample_number as string,
@@ -63,35 +178,52 @@ function DataView() {
           color: s.color as string | null,
           oil_visibility: s.oil_visibility as string | null,
           particulates: s.particulates as string | null,
+          sample_point_id: s.sample_point_id as string,
           sample_point: (s.sample_points as { name: string })?.name ?? "",
           analyst: prof?.full_name ?? prof?.email ?? "",
-          readings: ((s.sample_readings as Array<Record<string, unknown>>) ?? [])
-            .map((r) => {
-              const mf = r.method_fields as { description: string; unit: string | null; hidden: boolean; methods: { name: string } };
-              return { method: mf.methods.name, field: mf.description, unit: mf.unit, value: r.value as number | null, hidden: mf.hidden };
-            })
-            .filter((r) => !r.hidden)
-            .map(({ hidden: _h, ...rest }) => rest),
+          readingByFieldId,
         };
       });
       return rows;
     },
   });
 
+  // Default-select all once methods/points load
+  useEffect(() => {
+    if (methods && selectedMethods.size === 0) {
+      setSelectedMethods(new Set(methods.map((m) => m.id)));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [methods]);
+  useEffect(() => {
+    if (samplePoints && selectedPoints.size === 0) {
+      setSelectedPoints(new Set(samplePoints.map((p) => p.id)));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [samplePoints]);
 
   const rows = data ?? [];
 
+  const visibleMethods = useMemo(
+    () => (methods ?? []).filter((m) => selectedMethods.has(m.id) && m.fields.length > 0),
+    [methods, selectedMethods],
+  );
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return rows;
     return rows.filter((r) => {
+      if (selectedPoints.size > 0 && !selectedPoints.has(r.sample_point_id)) return false;
+      if (!q) return true;
+      const readingStrs = visibleMethods.flatMap((m) =>
+        m.fields.map((f) => String(r.readingByFieldId[f.id] ?? "")),
+      );
       const hay = [
         r.sample_number, r.sample_point, r.analyst, r.color, r.oil_visibility, r.particulates,
-        ...r.readings.flatMap((x) => [x.method, x.field, String(x.value ?? "")]),
+        ...readingStrs,
       ].join(" ").toLowerCase();
       return hay.includes(q);
     });
-  }, [rows, query]);
+  }, [rows, query, selectedPoints, visibleMethods]);
 
   const sorted = useMemo(() => {
     const arr = [...filtered];
@@ -104,7 +236,7 @@ function DataView() {
     return arr;
   }, [filtered, sort]);
 
-  const cols: { key: keyof Row; label: string }[] = [
+  const metaCols: { key: keyof Row; label: string }[] = [
     { key: "sample_number", label: "Sample #" },
     { key: "sample_point", label: "Sample Point" },
     { key: "analyst", label: "Analyst" },
@@ -119,18 +251,28 @@ function DataView() {
     setSort((s) => (s.key === k ? { key: k, dir: s.dir === "asc" ? "desc" : "asc" } : { key: k, dir: "asc" }));
   }
 
+  const totalFieldCols = visibleMethods.reduce((acc, m) => acc + m.fields.length, 0);
+  const totalCols = metaCols.length + totalFieldCols;
+
   function exportCsv() {
-    const headers = [...cols.map((c) => c.label), "Readings"];
-    const lines = [headers.join(",")];
+    const headerTop: string[] = [
+      ...metaCols.map((c) => c.label),
+      ...visibleMethods.flatMap((m) => m.fields.map((f) => `${m.name} · ${f.description}${f.unit ? ` (${f.unit})` : ""}`)),
+    ];
+    const lines = [headerTop.join(",")];
     sorted.forEach((r) => {
-      const readings = r.readings.map((x) => `${x.method}:${x.field}=${x.value ?? ""}${x.unit ? x.unit : ""}`).join(" | ");
-      const cells = [
+      const cells: string[] = [
         r.sample_number, r.sample_point, r.analyst,
         r.sampled_at ?? "", r.date_analyzed ?? "",
         r.color ?? "", r.oil_visibility ?? "", r.particulates ?? "",
-        readings,
-      ].map((c) => `"${String(c).replace(/"/g, '""')}"`);
-      lines.push(cells.join(","));
+        ...visibleMethods.flatMap((m) =>
+          m.fields.map((f) => {
+            const v = r.readingByFieldId[f.id];
+            return v === undefined || v === null ? "" : String(v);
+          }),
+        ),
+      ];
+      lines.push(cells.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","));
     });
     const blob = new Blob([lines.join("\n")], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
@@ -152,31 +294,70 @@ function DataView() {
 
       <Card>
         <CardContent className="p-4 space-y-4">
-          <div className="relative max-w-sm">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input className="pl-9" placeholder="Search samples, methods, values…" value={query} onChange={(e) => setQuery(e.target.value)} />
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative max-w-sm flex-1 min-w-[200px]">
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input className="pl-9" placeholder="Search samples, methods, values…" value={query} onChange={(e) => setQuery(e.target.value)} />
+            </div>
+            <MultiSelect
+              label="Methods"
+              items={(methods ?? []).map((m) => ({ id: m.id, name: m.name }))}
+              selected={selectedMethods}
+              onChange={setSelectedMethods}
+            />
+            <MultiSelect
+              label="Sample Points"
+              items={samplePoints ?? []}
+              selected={selectedPoints}
+              onChange={setSelectedPoints}
+            />
           </div>
 
           <div className="rounded-md border overflow-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm border-collapse">
               <thead className="bg-muted/60 text-muted-foreground sticky top-0">
                 <tr>
-                  {cols.map((c) => (
-                    <th key={c.key as string} className="text-left font-medium px-3 py-2 whitespace-nowrap">
+                  {metaCols.map((c) => (
+                    <th
+                      key={c.key as string}
+                      rowSpan={2}
+                      className="text-left font-medium px-3 py-2 whitespace-nowrap border-b align-bottom"
+                    >
                       <button className="inline-flex items-center gap-1 hover:text-foreground" onClick={() => toggleSort(c.key as string)}>
                         {c.label}<ArrowUpDown className="h-3 w-3 opacity-60" />
                       </button>
                     </th>
                   ))}
-                  <th className="text-left font-medium px-3 py-2">Readings</th>
+                  {visibleMethods.map((m) => (
+                    <th
+                      key={m.id}
+                      colSpan={m.fields.length}
+                      className="text-center font-semibold text-foreground px-3 py-2 border-b border-l whitespace-nowrap"
+                    >
+                      {m.name}
+                    </th>
+                  ))}
+                </tr>
+                <tr>
+                  {visibleMethods.flatMap((m) =>
+                    m.fields.map((f, idx) => (
+                      <th
+                        key={f.id}
+                        className={`text-left font-medium px-3 py-2 whitespace-nowrap border-b text-xs ${idx === 0 ? "border-l" : ""}`}
+                      >
+                        {f.description}
+                        {f.unit ? <span className="text-muted-foreground"> ({f.unit})</span> : null}
+                      </th>
+                    )),
+                  )}
                 </tr>
               </thead>
               <tbody>
                 {isLoading && (
-                  <tr><td colSpan={cols.length + 1} className="px-3 py-8 text-center text-muted-foreground">Loading…</td></tr>
+                  <tr><td colSpan={totalCols} className="px-3 py-8 text-center text-muted-foreground">Loading…</td></tr>
                 )}
                 {!isLoading && sorted.length === 0 && (
-                  <tr><td colSpan={cols.length + 1} className="px-3 py-12 text-center text-muted-foreground">No samples found.</td></tr>
+                  <tr><td colSpan={totalCols} className="px-3 py-12 text-center text-muted-foreground">No samples found.</td></tr>
                 )}
                 {sorted.map((r) => (
                   <tr key={r.id} className="border-t hover:bg-muted/40">
@@ -188,18 +369,19 @@ function DataView() {
                     <td className="px-3 py-2">{r.color ?? "—"}</td>
                     <td className="px-3 py-2">{r.oil_visibility ?? "—"}</td>
                     <td className="px-3 py-2 max-w-[180px] truncate">{r.particulates ?? "—"}</td>
-                    <td className="px-3 py-2">
-                      {r.readings.length === 0 ? <span className="text-muted-foreground">—</span> : (
-                        <div className="flex flex-wrap gap-1">
-                          {r.readings.map((x, i) => (
-                            <span key={i} className="inline-flex items-center rounded bg-secondary text-secondary-foreground px-2 py-0.5 text-xs">
-                              <span className="text-muted-foreground mr-1">{x.method}·{x.field}:</span>
-                              <span className="font-mono">{x.value ?? "—"}{x.unit ? ` ${x.unit}` : ""}</span>
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </td>
+                    {visibleMethods.flatMap((m) =>
+                      m.fields.map((f, idx) => {
+                        const v = r.readingByFieldId[f.id];
+                        return (
+                          <td
+                            key={f.id}
+                            className={`px-3 py-2 font-mono text-xs whitespace-nowrap ${idx === 0 ? "border-l" : ""}`}
+                          >
+                            {v === undefined || v === null ? <span className="text-muted-foreground">—</span> : v}
+                          </td>
+                        );
+                      }),
+                    )}
                   </tr>
                 ))}
               </tbody>
