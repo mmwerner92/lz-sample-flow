@@ -30,7 +30,7 @@ type ParsedRow = {
   particulates: string | null;
   notes: string | null;
   status: string | null;
-  readings: { method_field_id: string; value: number | null }[];
+  readings: { method_field_id: string; value: string }[];
   action: "insert" | "update" | "error";
   matchedSampleId?: string;
   resolvedAnalystId: string | null;
