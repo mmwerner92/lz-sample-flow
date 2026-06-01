@@ -55,6 +55,7 @@ type SampleRow = {
   particulates: string | null;
   date_analyzed: string | null;
   status: string | null;
+  notes: string | null;
 };
 
 function genSampleNumber() {
@@ -106,6 +107,7 @@ function SampleEntry() {
   const [dateAnalyzed, setDateAnalyzed] = useState(todayISO());
 
   const [status, setStatus] = useState<SampleStatus | "">("");
+  const [notes, setNotes] = useState("");
   const [activeSampleId, setActiveSampleId] = useState<string | null>(null);
   const [selectedMethodId, setSelectedMethodId] = useState<string>("");
   const [readings, setReadings] = useState<Record<string, string>>({});
@@ -174,6 +176,7 @@ function SampleEntry() {
     setDateAnalyzed(todayISO());
 
     setStatus("");
+    setNotes("");
     setReadings({});
   };
 
@@ -204,6 +207,7 @@ function SampleEntry() {
 
     setDateAnalyzed(s.date_analyzed ?? "");
     setStatus((s.status as SampleStatus) ?? "");
+    setNotes(s.notes ?? "");
     setReadings({});
     return true;
   }
@@ -259,6 +263,7 @@ function SampleEntry() {
       particulates: particulates || null,
       date_analyzed: dateAnalyzed || null,
       status: status || null,
+      notes: notes || null,
     };
     let sampleId = activeSampleId;
     if (sampleId) {
@@ -362,6 +367,7 @@ function SampleEntry() {
       particulates: particulates || null,
       date_analyzed: dateAnalyzed || null,
       status: status || null,
+      notes: notes || null,
     };
     const { data, error } = await supabase.from("samples").insert(payload).select("id").single();
     if (error) {
@@ -429,6 +435,7 @@ function SampleEntry() {
       particulates: particulates || null,
       date_analyzed: dateAnalyzed || null,
       status: status || null,
+      notes: notes || null,
     };
     const { data, error } = await supabase.from("samples").insert(payload).select("id").single();
     if (error) {
@@ -674,6 +681,14 @@ function SampleEntry() {
                   className="min-h-9"
                   value={particulates}
                   onChange={(e) => setParticulates(e.target.value)}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Notes</Label>
+                <Textarea
+                  rows={2}
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
                 />
               </div>
               <div className="space-y-1">
