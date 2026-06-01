@@ -532,6 +532,12 @@ function SampleEntry() {
               Delete
             </Button>
           )}
+          {activeSampleId && (
+            <Button variant="outline" size="sm" onClick={duplicateSample}>
+              <Files className="h-4 w-4 mr-1" />
+              Duplicate
+            </Button>
+          )}
           <Button variant="outline" size="sm" onClick={saveAsSample}>
             <Copy className="h-4 w-4 mr-1" />
             Save As
