@@ -261,7 +261,7 @@ function AnalyticsPage() {
         sampled_at: string | null;
         sample_point_id: string;
         sample_points: { name: string };
-        sample_readings: Array<{ value: number | null; method_field_id: string }>;
+        sample_readings: Array<{ value: string | null; method_field_id: string }>;
       };
       return (data ?? []) as unknown as SampleRow[];
     },
