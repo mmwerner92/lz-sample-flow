@@ -34,7 +34,7 @@ type Row = {
   sample_point_id: string;
   sample_point: string;
   analyst: string;
-  readingByFieldId: Record<string, number | null>;
+  readingByFieldId: Record<string, string | null>;
 };
 
 function MultiSelect({
