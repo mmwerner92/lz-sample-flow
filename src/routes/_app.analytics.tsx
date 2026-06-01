@@ -383,7 +383,7 @@ function AnalyticsPage() {
     const { error } = await supabase.from("saved_analytics_views").insert({
       user_id: user.id,
       name: saveName.trim(),
-      config: config as unknown as Record<string, unknown>,
+      config: JSON.parse(JSON.stringify(config)),
     });
     if (error) {
       toast.error(error.message);
