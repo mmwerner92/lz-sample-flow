@@ -192,7 +192,6 @@ function ImportsPage() {
           ? pointByName.get(sample_point_name.toLowerCase()) ?? null
           : null;
         if (!sample_point_name) errors.push("Missing Sample Point");
-        else if (!resolvedSamplePointId) errors.push(`Unknown Sample Point "${sample_point_name}"`);
 
         const analyst_name = String(r["Analyst"] ?? "").trim();
         const resolvedAnalystId = analyst_name
