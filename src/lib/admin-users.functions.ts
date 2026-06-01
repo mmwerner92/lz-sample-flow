@@ -133,8 +133,15 @@ export const getMyAdminStatus = createServerFn({ method: "GET" })
     const { data } = await supabaseAdmin
       .from("user_roles")
       .select("role")
-      .eq("user_id", context.userId)
-      .eq("role", "admin")
-      .maybeSingle();
-    return { isAdmin: !!data };
+      .eq("user_id", context.userId);
+    const roles = (data ?? []).map((r) => r.role as string);
+    const role = (roles.includes("admin")
+      ? "admin"
+      : roles.includes("editor")
+      ? "editor"
+      : roles.includes("operations")
+      ? "operations"
+      : "user") as "admin" | "editor" | "operations" | "user";
+    return { isAdmin: role === "admin", role };
   });
+
