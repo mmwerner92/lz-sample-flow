@@ -55,6 +55,7 @@ type SampleRow = {
   particulates: string | null;
   date_analyzed: string | null;
   status: string | null;
+  notes: string | null;
 };
 
 function genSampleNumber() {
