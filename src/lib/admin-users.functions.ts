@@ -47,7 +47,7 @@ export const createAccount = createServerFn({ method: "POST" })
         email: z.string().email(),
         password: z.string().min(8).max(72),
         full_name: z.string().min(1).max(255),
-        role: z.enum(["admin", "user"]),
+        role: z.enum(["admin", "editor", "operations", "user"]),
       })
       .parse(input),
   )
@@ -77,10 +77,11 @@ export const setAccountRole = createServerFn({ method: "POST" })
     z
       .object({
         user_id: z.string().uuid(),
-        role: z.enum(["admin", "user"]),
+        role: z.enum(["admin", "editor", "operations", "user"]),
       })
       .parse(input),
   )
+
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
     // Replace roles with just this one
