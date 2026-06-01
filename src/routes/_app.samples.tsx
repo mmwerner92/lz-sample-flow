@@ -525,14 +525,14 @@ function SampleEntry() {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-3 flex-1 min-h-0">
-        <Card className="lg:col-span-3 flex flex-col min-h-0">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 flex-1 min-h-0">
+        <Card className="lg:col-span-1 flex flex-col min-h-0">
           <CardHeader className="py-3">
             <CardTitle className="text-sm">Sample data</CardTitle>
           </CardHeader>
           <CardContent className="flex-1 overflow-auto">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1 col-span-2">
+            <div className="grid grid-cols-1 gap-3">
+              <div className="space-y-1">
                 <Label className="text-xs">Sample Point</Label>
                 <div className="flex gap-2">
                   <Select value={samplePointId} onValueChange={setSamplePointId}>
@@ -655,84 +655,69 @@ function SampleEntry() {
               <p className="text-sm text-muted-foreground">This method has no fields.</p>
             )}
             {methodFields.length > 0 && (
-              <div className="rounded-md border bg-card overflow-hidden">
-                <table className="w-full text-xs">
-                  <thead className="bg-muted/60 text-muted-foreground">
-                    <tr>
-                      <th className="text-left font-medium px-2 py-1.5">Description</th>
-                      <th className="text-left font-medium px-2 py-1.5 w-14">Unit</th>
-                      <th className="text-left font-medium px-2 py-1.5 w-14">Min</th>
-                      <th className="text-left font-medium px-2 py-1.5 w-14">Max</th>
-                      <th className="text-left font-medium px-2 py-1.5 w-28">Value</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(() => {
-                      const valuesByDesc: Record<string, number> = {};
-                      methodFields.forEach((f) => {
-                        if (!f.is_calculated) {
-                          const rv = readings[f.id];
-                          if (rv !== undefined && rv !== "" && !Number.isNaN(Number(rv))) {
-                            valuesByDesc[f.description] = Number(rv);
-                          }
-                        }
-                      });
-                      return methodFields.map((f) => {
-                        let displayValue = "";
-                        let num: number | null = null;
-                        if (f.is_calculated) {
-                          const c = evalFormula(f.formula ?? "", valuesByDesc);
-                          num = c;
-                          displayValue = c == null ? "" : String(Math.round(c * 10000) / 10000);
-                        } else {
-                          const v = readings[f.id] ?? "";
-                          displayValue = v;
-                          num = v === "" ? null : Number(v);
-                        }
-                        const oor =
-                          num !== null &&
-                          !Number.isNaN(num) &&
-                          ((f.min_val != null && num < f.min_val) || (f.max_val != null && num > f.max_val));
-                        return (
-                          <tr key={f.id} className="border-t">
-                            <td className="px-2 py-1.5">
-                              <span className="inline-flex items-center gap-1">
-                                {f.is_calculated && (
-                                  <span
-                                    title="Calculated"
-                                    className="text-[10px] font-mono px-1 rounded bg-muted text-muted-foreground"
-                                  >
-                                    ƒ
-                                  </span>
-                                )}
-                                {f.description}
-                              </span>
-                            </td>
-                            <td className="px-2 py-1.5 text-muted-foreground">{f.unit ?? "—"}</td>
-                            <td className="px-2 py-1.5 font-mono">{f.min_val ?? "—"}</td>
-                            <td className="px-2 py-1.5 font-mono">{f.max_val ?? "—"}</td>
-                            <td className="px-2 py-1.5">
-                              {f.is_calculated ? (
-                                <div
-                                  className={`font-mono h-7 px-2 flex items-center text-xs rounded-md border bg-muted/40 ${oor ? "border-destructive text-destructive" : ""}`}
-                                >
-                                  {displayValue || <span className="text-muted-foreground">—</span>}
-                                </div>
-                              ) : (
-                                <Input
-                                  className={`font-mono h-7 text-xs ${oor ? "border-destructive text-destructive" : ""}`}
-                                  value={displayValue}
-                                  onChange={(e) => setReadings((r) => ({ ...r, [f.id]: e.target.value }))}
-                                  inputMode="decimal"
-                                />
-                              )}
-                            </td>
-                          </tr>
-                        );
-                      });
-                    })()}
-                  </tbody>
-                </table>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {(() => {
+                  const valuesByDesc: Record<string, number> = {};
+                  methodFields.forEach((f) => {
+                    if (!f.is_calculated) {
+                      const rv = readings[f.id];
+                      if (rv !== undefined && rv !== "" && !Number.isNaN(Number(rv))) {
+                        valuesByDesc[f.description] = Number(rv);
+                      }
+                    }
+                  });
+                  return methodFields.map((f) => {
+                    let displayValue = "";
+                    let num: number | null = null;
+                    if (f.is_calculated) {
+                      const c = evalFormula(f.formula ?? "", valuesByDesc);
+                      num = c;
+                      displayValue = c == null ? "" : String(Math.round(c * 10000) / 10000);
+                    } else {
+                      const v = readings[f.id] ?? "";
+                      displayValue = v;
+                      num = v === "" ? null : Number(v);
+                    }
+                    const oor =
+                      num !== null &&
+                      !Number.isNaN(num) &&
+                      ((f.min_val != null && num < f.min_val) || (f.max_val != null && num > f.max_val));
+                    return (
+                      <div key={f.id} className="rounded-md border p-2 space-y-1.5 bg-card">
+                        <div className="flex items-center gap-1.5">
+                          {f.is_calculated && (
+                            <span
+                              title="Calculated"
+                              className="text-[10px] font-mono px-1 rounded bg-muted text-muted-foreground"
+                            >
+                              ƒ
+                            </span>
+                          )}
+                          <span className="text-xs font-medium">{f.description}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                          <span>Unit: {f.unit ?? "—"}</span>
+                          <span>Min: {f.min_val ?? "—"}</span>
+                          <span>Max: {f.max_val ?? "—"}</span>
+                        </div>
+                        {f.is_calculated ? (
+                          <div
+                            className={`font-mono h-8 px-2 flex items-center text-xs rounded-md border bg-muted/40 ${oor ? "border-destructive text-destructive" : ""}`}
+                          >
+                            {displayValue || <span className="text-muted-foreground">—</span>}
+                          </div>
+                        ) : (
+                          <Input
+                            className={`font-mono h-8 text-xs ${oor ? "border-destructive text-destructive" : ""}`}
+                            value={displayValue}
+                            onChange={(e) => setReadings((r) => ({ ...r, [f.id]: e.target.value }))}
+                            inputMode="decimal"
+                          />
+                        )}
+                      </div>
+                    );
+                  });
+                })()}
               </div>
             )}
           </CardContent>
