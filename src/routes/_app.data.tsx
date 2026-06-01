@@ -370,11 +370,11 @@ function DataView() {
                   <tr><td colSpan={totalCols} className="px-3 py-12 text-center text-muted-foreground">No samples found.</td></tr>
                 )}
                 {sorted.map((r) => (
-                  <tr key={r.id} className="border-t hover:bg-muted/40">
-                    <td className="px-3 py-2 font-mono">{r.sample_number}</td>
-                    <td className="px-3 py-2">{r.sample_point}</td>
+                  <tr key={r.id} className="border-t hover:bg-muted/40 group">
+                    <td className="px-3 py-2 font-mono sticky left-0 z-10 bg-background group-hover:bg-muted/40" style={{ width: 140, minWidth: 140 }}>{r.sample_number}</td>
+                    <td className="px-3 py-2 whitespace-nowrap text-xs text-muted-foreground sticky z-10 bg-background group-hover:bg-muted/40 border-l" style={{ left: 140, width: 150, minWidth: 150 }}>{r.sampled_at?.replace("T", " ").slice(0, 16) ?? "—"}</td>
+                    <td className="px-3 py-2 sticky z-10 bg-background group-hover:bg-muted/40 border-l" style={{ left: 290, width: 160, minWidth: 160 }}>{r.sample_point}</td>
                     <td className="px-3 py-2">{r.analyst}</td>
-                    <td className="px-3 py-2 whitespace-nowrap text-xs text-muted-foreground">{r.sampled_at?.replace("T", " ").slice(0, 16) ?? "—"}</td>
                     <td className="px-3 py-2 whitespace-nowrap text-xs text-muted-foreground">{r.date_analyzed ?? "—"}</td>
                     <td className="px-3 py-2">{r.color ?? "—"}</td>
                     <td className="px-3 py-2">{r.oil_visibility ?? "—"}</td>
