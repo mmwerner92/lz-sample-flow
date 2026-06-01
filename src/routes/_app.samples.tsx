@@ -107,6 +107,7 @@ function SampleEntry() {
   const [dateAnalyzed, setDateAnalyzed] = useState(todayISO());
 
   const [status, setStatus] = useState<SampleStatus | "">("");
+  const [notes, setNotes] = useState("");
   const [activeSampleId, setActiveSampleId] = useState<string | null>(null);
   const [selectedMethodId, setSelectedMethodId] = useState<string>("");
   const [readings, setReadings] = useState<Record<string, string>>({});
