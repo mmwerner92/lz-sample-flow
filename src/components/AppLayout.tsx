@@ -9,6 +9,8 @@ import { useEffect, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/lib/theme";
 
+import { canAccess, type AppRole } from "@/lib/use-my-role";
+
 const baseNav = [
   { to: "/samples", label: "Sample Entry", icon: BeakerIcon },
   { to: "/methods", label: "Methods", icon: FlaskConical },
@@ -18,6 +20,7 @@ const baseNav = [
   { to: "/schedule", label: "Schedule Samples", icon: CalendarPlus },
   { to: "/schedule-view", label: "Sample Schedule", icon: CalendarClock },
 ];
+
 
 
 const STORAGE_KEY = "lj-sidebar-collapsed";
