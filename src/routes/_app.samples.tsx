@@ -212,15 +212,21 @@ function SampleEntry() {
     return true;
   }
 
-  async function findSample() {
-    if (!searchPoint || !searchNumber) {
-      toast.error("Pick a sample point and sample number.");
-      return;
-    }
-    const ok = await loadSample(searchPoint, searchNumber);
-    if (!ok) toast.error("Sample not found.");
-    else toast.success(`Loaded sample ${searchNumber}`);
+  // Auto-load whenever a sample number is selected for the chosen point
+  useEffect(() => {
+    if (!searchPoint || !searchNumber) return;
+    (async () => {
+      const ok = await loadSample(searchPoint, searchNumber);
+      if (!ok) toast.error("Sample not found.");
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchPoint, searchNumber]);
+
+  function clearForm() {
+    resetForm();
+    setSearchNumber("");
   }
+
 
   // Apply incoming search params from Sample Schedule navigation
   useEffect(() => {
