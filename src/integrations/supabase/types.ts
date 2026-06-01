@@ -112,6 +112,7 @@ export type Database = {
           created_at: string
           description: string
           formula: string | null
+          hidden: boolean
           id: string
           is_calculated: boolean
           max_val: number | null
@@ -125,6 +126,7 @@ export type Database = {
           created_at?: string
           description: string
           formula?: string | null
+          hidden?: boolean
           id?: string
           is_calculated?: boolean
           max_val?: number | null
@@ -138,6 +140,7 @@ export type Database = {
           created_at?: string
           description?: string
           formula?: string | null
+          hidden?: boolean
           id?: string
           is_calculated?: boolean
           max_val?: number | null
