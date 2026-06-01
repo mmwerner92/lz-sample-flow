@@ -209,6 +209,32 @@ function SampleEntry() {
     setStatus((s.status as SampleStatus) ?? "");
     setNotes(s.notes ?? "");
     setReadings({});
+    // Auto-select the first method that has readings for this sample
+    const { data: srData } = await supabase
+      .from("sample_readings")
+      .select("method_field_id, value")
+      .eq("sample_id", s.id)
+      .not("value", "is", null);
+    const fieldIds = (srData ?? [])
+      .filter((r: any) => r.value !== "")
+      .map((r: any) => r.method_field_id) as string[];
+    if (fieldIds.length > 0) {
+      const { data: mfData } = await supabase
+        .from("method_fields")
+        .select("method_id")
+        .in("id", fieldIds);
+      const methodIds = [...new Set((mfData ?? []).map((f: any) => f.method_id))] as string[];
+      if (methodIds.length > 0) {
+        const { data: mData } = await supabase
+          .from("methods")
+          .select("id")
+          .in("id", methodIds)
+          .order("name");
+        if (mData && mData.length > 0) {
+          setSelectedMethodId(mData[0].id);
+        }
+      }
+    }
     return true;
   }
 
