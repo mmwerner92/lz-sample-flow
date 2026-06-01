@@ -98,6 +98,16 @@ function Methods() {
     setDraftFields(list.filter((f) => f.id !== id));
   }
 
+  function moveField(id: string, dir: -1 | 1) {
+    const list = (draftFields.length ? draftFields : baseFields.map((f) => ({ ...f }))).slice();
+    const idx = list.findIndex((f) => f.id === id);
+    const target = idx + dir;
+    if (idx < 0 || target < 0 || target >= list.length) return;
+    [list[idx], list[target]] = [list[target], list[idx]];
+    setDraftFields(list);
+  }
+
+
   async function saveFields() {
     if (!selectedId) return;
     const list = draftFields.length ? draftFields : baseFields;
