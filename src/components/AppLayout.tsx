@@ -62,9 +62,12 @@ export function AppLayout({ children }: { children: ReactNode }) {
     });
   };
 
-  const nav = me.data?.isAdmin
-    ? [...baseNav, { to: "/users", label: "Users", icon: Users }]
-    : baseNav;
+  const role = (me.data?.role ?? "user") as AppRole;
+  const allowed = baseNav.filter((n) => canAccess(role, n.to));
+  const nav = role === "admin"
+    ? [...allowed, { to: "/users", label: "Users", icon: Users }]
+    : allowed;
+
 
   return (
     <div className="flex min-h-screen bg-background">
