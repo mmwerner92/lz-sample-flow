@@ -11,18 +11,16 @@ import { ArrowUpDown, Search, Download, ChevronDown } from "lucide-react";
 type MethodField = { id: string; description: string; unit: string | null; position: number };
 type Method = { id: string; name: string; fields: MethodField[] };
 
-// Format sampled_at: show date-only when the value is exact midnight UTC
-// (this is how Excel date-only imports are stored). Otherwise show date + HH:MM.
+// Format sampled_at in the user's LOCAL timezone so it matches what the
+// Sample Entry form shows (which reads getHours/getMinutes/getDate locally).
 function formatSampledAt(v: string | null): string {
   if (!v) return "—";
-  // PostgREST returns timestamptz as ISO like "2026-05-21T00:00:00+00:00".
-  // Use string parsing so we don't shift days across local timezones.
-  const m = v.match(/^(\d{4}-\d{2}-\d{2})[T ](\d{2}):(\d{2}):(\d{2}(?:\.\d+)?)(Z|[+-]\d{2}:?\d{2})?$/);
-  if (!m) return v;
-  const [, date, hh, mm, ss, tz] = m;
-  const isMidnightUtc =
-    hh === "00" && mm === "00" && parseFloat(ss) === 0 && (tz === "Z" || tz === "+00:00" || tz === "+00" || tz === "+0000");
-  return isMidnightUtc ? date : `${date} ${hh}:${mm}`;
+  const d = new Date(v);
+  if (isNaN(d.getTime())) return v;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const date = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const isMidnight = d.getHours() === 0 && d.getMinutes() === 0 && d.getSeconds() === 0;
+  return isMidnight ? date : `${date} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 type Row = {
