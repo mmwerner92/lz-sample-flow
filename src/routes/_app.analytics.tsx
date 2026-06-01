@@ -16,6 +16,7 @@ import { ChevronDown, CalendarIcon, Save, Trash2 } from "lucide-react";
 import { format, subDays, parseISO, startOfDay, startOfWeek, startOfMonth } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { extractNumeric } from "@/lib/formula";
 import {
   ResponsiveContainer,
   LineChart,
@@ -260,7 +261,7 @@ function AnalyticsPage() {
         sampled_at: string | null;
         sample_point_id: string;
         sample_points: { name: string };
-        sample_readings: Array<{ value: number | null; method_field_id: string }>;
+        sample_readings: Array<{ value: string | null; method_field_id: string }>;
       };
       return (data ?? []) as unknown as SampleRow[];
     },
@@ -297,18 +298,18 @@ function AnalyticsPage() {
       const pts: Pt[] = [];
       if (config.chartType === "scatter" && xField) {
         for (const s of group.rows) {
-          const yVal = s.sample_readings.find((r) => r.method_field_id === config.fieldId)?.value;
-          const xVal = s.sample_readings.find((r) => r.method_field_id === xField.id)?.value;
+          const yVal = extractNumeric(s.sample_readings.find((r) => r.method_field_id === config.fieldId)?.value);
+          const xVal = extractNumeric(s.sample_readings.find((r) => r.method_field_id === xField.id)?.value);
           if (yVal == null || xVal == null) continue;
-          pts.push({ x: Number(xVal), y: Number(yVal), label: s.sample_number });
+          pts.push({ x: xVal, y: yVal, label: s.sample_number });
         }
       } else {
         // line / bar — time on x
         const rows: { t: number; v: number }[] = [];
         for (const s of group.rows) {
-          const yVal = s.sample_readings.find((r) => r.method_field_id === config.fieldId)?.value;
+          const yVal = extractNumeric(s.sample_readings.find((r) => r.method_field_id === config.fieldId)?.value);
           if (yVal == null || !s.sampled_at) continue;
-          rows.push({ t: new Date(s.sampled_at).getTime(), v: Number(yVal) });
+          rows.push({ t: new Date(s.sampled_at).getTime(), v: yVal });
         }
         if (config.aggregation === "none") {
           rows.sort((a, b) => a.t - b.t);

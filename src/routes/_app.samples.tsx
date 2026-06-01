@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Copy, Files, Plus, Save, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { evalFormula } from "@/lib/formula";
+import { evalFormula, extractNumeric } from "@/lib/formula";
 import { applyMethodInventoryUsage } from "@/lib/inventory-usage";
 import { SAMPLE_STATUSES, type SampleStatus } from "@/lib/schedule";
 
@@ -159,8 +159,8 @@ function SampleEntry() {
           methodFields.map((f) => f.id),
         );
       const map: Record<string, string> = {};
-      (data ?? []).forEach((r: { method_field_id: string; value: number | null }) => {
-        map[r.method_field_id] = r.value == null ? "" : String(r.value);
+      (data ?? []).forEach((r: { method_field_id: string; value: string | null }) => {
+        map[r.method_field_id] = r.value == null ? "" : r.value;
       });
       setReadings((prev) => ({ ...prev, ...map }));
     })();
@@ -289,14 +289,13 @@ function SampleEntry() {
     }
 
     if (selectedMethodId && methodFields.length) {
-      // Build description -> value map for formulas (input fields only)
+      // Build description -> numeric value map for formulas (input fields only).
+      // Strings with embedded numerics (e.g. "12.5 ppm") contribute their numeric portion.
       const valuesByDesc: Record<string, number> = {};
       methodFields.forEach((f) => {
         if (!f.is_calculated) {
-          const v = readings[f.id];
-          if (v !== undefined && v !== "" && !Number.isNaN(Number(v))) {
-            valuesByDesc[f.description] = Number(v);
-          }
+          const n = extractNumeric(readings[f.id]);
+          if (n !== null) valuesByDesc[f.description] = n;
         }
       });
       const rows = methodFields
@@ -304,13 +303,13 @@ function SampleEntry() {
           if (f.is_calculated) {
             const computed = evalFormula(f.formula ?? "", valuesByDesc);
             if (computed == null) return null;
-            return { sample_id: sampleId!, method_field_id: f.id, value: computed };
+            return { sample_id: sampleId!, method_field_id: f.id, value: String(computed) };
           }
           const v = readings[f.id];
           if (v === undefined || v === "") return null;
-          return { sample_id: sampleId!, method_field_id: f.id, value: Number(v) };
+          return { sample_id: sampleId!, method_field_id: f.id, value: String(v) };
         })
-        .filter((r): r is { sample_id: string; method_field_id: string; value: number } => r !== null);
+        .filter((r): r is { sample_id: string; method_field_id: string; value: string } => r !== null);
       if (rows.length) {
         const { error } = await supabase
           .from("sample_readings")
@@ -386,10 +385,8 @@ function SampleEntry() {
       const valuesByDesc: Record<string, number> = {};
       methodFields.forEach((f) => {
         if (!f.is_calculated) {
-          const v = readings[f.id];
-          if (v !== undefined && v !== "" && !Number.isNaN(Number(v))) {
-            valuesByDesc[f.description] = Number(v);
-          }
+          const n = extractNumeric(readings[f.id]);
+          if (n !== null) valuesByDesc[f.description] = n;
         }
       });
       const rows = methodFields
@@ -397,13 +394,13 @@ function SampleEntry() {
           if (f.is_calculated) {
             const computed = evalFormula(f.formula ?? "", valuesByDesc);
             if (computed == null) return null;
-            return { sample_id: newId, method_field_id: f.id, value: computed };
+            return { sample_id: newId, method_field_id: f.id, value: String(computed) };
           }
           const v = readings[f.id];
           if (v === undefined || v === "") return null;
-          return { sample_id: newId, method_field_id: f.id, value: Number(v) };
+          return { sample_id: newId, method_field_id: f.id, value: String(v) };
         })
-        .filter((r): r is { sample_id: string; method_field_id: string; value: number } => r !== null);
+        .filter((r): r is { sample_id: string; method_field_id: string; value: string } => r !== null);
       if (rows.length) {
         await supabase.from("sample_readings").insert(rows);
       }
@@ -454,10 +451,8 @@ function SampleEntry() {
       const valuesByDesc: Record<string, number> = {};
       methodFields.forEach((f) => {
         if (!f.is_calculated) {
-          const v = readings[f.id];
-          if (v !== undefined && v !== "" && !Number.isNaN(Number(v))) {
-            valuesByDesc[f.description] = Number(v);
-          }
+          const n = extractNumeric(readings[f.id]);
+          if (n !== null) valuesByDesc[f.description] = n;
         }
       });
       const rows = methodFields
@@ -465,13 +460,13 @@ function SampleEntry() {
           if (f.is_calculated) {
             const computed = evalFormula(f.formula ?? "", valuesByDesc);
             if (computed == null) return null;
-            return { sample_id: newId, method_field_id: f.id, value: computed };
+            return { sample_id: newId, method_field_id: f.id, value: String(computed) };
           }
           const v = readings[f.id];
           if (v === undefined || v === "") return null;
-          return { sample_id: newId, method_field_id: f.id, value: Number(v) };
+          return { sample_id: newId, method_field_id: f.id, value: String(v) };
         })
-        .filter((r): r is { sample_id: string; method_field_id: string; value: number } => r !== null);
+        .filter((r): r is { sample_id: string; method_field_id: string; value: string } => r !== null);
       if (rows.length) {
         await supabase.from("sample_readings").insert(rows);
       }
@@ -755,10 +750,8 @@ function SampleEntry() {
                   const valuesByDesc: Record<string, number> = {};
                   methodFields.forEach((f) => {
                     if (!f.is_calculated) {
-                      const rv = readings[f.id];
-                      if (rv !== undefined && rv !== "" && !Number.isNaN(Number(rv))) {
-                        valuesByDesc[f.description] = Number(rv);
-                      }
+                      const n = extractNumeric(readings[f.id]);
+                      if (n !== null) valuesByDesc[f.description] = n;
                     }
                   });
                   return methodFields.map((f) => {
@@ -771,7 +764,7 @@ function SampleEntry() {
                     } else {
                       const v = readings[f.id] ?? "";
                       displayValue = v;
-                      num = v === "" ? null : Number(v);
+                      num = extractNumeric(v);
                     }
                     const oor =
                       num !== null &&
@@ -806,7 +799,6 @@ function SampleEntry() {
                             className={`font-mono h-8 text-xs ${oor ? "border-destructive text-destructive" : ""}`}
                             value={displayValue}
                             onChange={(e) => setReadings((r) => ({ ...r, [f.id]: e.target.value }))}
-                            inputMode="decimal"
                           />
                         )}
                       </div>

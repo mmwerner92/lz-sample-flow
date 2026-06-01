@@ -1,4 +1,17 @@
 // Lightweight formula evaluator for calculated method fields.
+// Extracts the first signed numeric token from a string ("12.5 ppm" -> 12.5).
+// Returns null when no numeric portion is found.
+export function extractNumeric(v: unknown): number | null {
+  if (v === null || v === undefined) return null;
+  if (typeof v === "number") return Number.isFinite(v) ? v : null;
+  const s = String(v).trim();
+  if (s === "") return null;
+  const m = s.match(/-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?/);
+  if (!m) return null;
+  const n = Number(m[0]);
+  return Number.isFinite(n) ? n : null;
+}
+
 // Formulas reference other field descriptions wrapped in braces:
 //   ({Acid number} + {Base number}) / 2
 // Supported tokens: numbers, + - * / ( ) , whitespace, and Math.* (min, max, abs, sqrt, pow, log, exp, round).

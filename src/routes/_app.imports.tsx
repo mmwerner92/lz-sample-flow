@@ -30,7 +30,7 @@ type ParsedRow = {
   particulates: string | null;
   notes: string | null;
   status: string | null;
-  readings: { method_field_id: string; value: number | null }[];
+  readings: { method_field_id: string; value: string }[];
   action: "insert" | "update" | "error";
   matchedSampleId?: string;
   resolvedAnalystId: string | null;
@@ -199,16 +199,11 @@ function ImportsPage() {
           : null;
         const analystMissing = !!analyst_name && !resolvedAnalystId;
 
-        const readings: { method_field_id: string; value: number | null }[] = [];
+        const readings: { method_field_id: string; value: string }[] = [];
         fieldByHeader.forEach((fieldId, header) => {
           const raw = r[header];
           if (raw === null || raw === undefined || raw === "") return;
-          const num = typeof raw === "number" ? raw : Number(String(raw).trim());
-          if (Number.isNaN(num)) {
-            errors.push(`Non-numeric value in "${header}"`);
-          } else {
-            readings.push({ method_field_id: fieldId, value: num });
-          }
+          readings.push({ method_field_id: fieldId, value: String(raw).trim() });
         });
 
         return {

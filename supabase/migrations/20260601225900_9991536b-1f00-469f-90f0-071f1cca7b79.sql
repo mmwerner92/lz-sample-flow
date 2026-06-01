@@ -1,0 +1,1 @@
+ALTER TABLE public.sample_readings ALTER COLUMN value TYPE text USING value::text;

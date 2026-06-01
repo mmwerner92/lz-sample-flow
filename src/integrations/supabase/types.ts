@@ -278,7 +278,7 @@ export type Database = {
           method_field_id: string
           sample_id: string
           updated_at: string
-          value: number | null
+          value: string | null
         }
         Insert: {
           created_at?: string
@@ -286,7 +286,7 @@ export type Database = {
           method_field_id: string
           sample_id: string
           updated_at?: string
-          value?: number | null
+          value?: string | null
         }
         Update: {
           created_at?: string
@@ -294,7 +294,7 @@ export type Database = {
           method_field_id?: string
           sample_id?: string
           updated_at?: string
-          value?: number | null
+          value?: string | null
         }
         Relationships: [
           {
