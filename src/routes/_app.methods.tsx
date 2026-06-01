@@ -2,11 +2,23 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Select,
   SelectContent,
@@ -14,7 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Trash2, Save, Calculator, Package, ChevronUp, ChevronDown } from "lucide-react";
+import { Plus, Trash2, Save, Calculator, Package, ChevronUp, ChevronDown, Pencil, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 
 
@@ -24,12 +36,18 @@ export const Route = createFileRoute("/_app/methods")({
 });
 
 type Method = { id: string; name: string };
-type MethodField = { id: string; method_id: string; description: string; unit: string | null; min_val: number | null; max_val: number | null; position: number; is_calculated: boolean; formula: string | null; pi_point: string | null };
+type MethodField = { id: string; method_id: string; description: string; unit: string | null; min_val: number | null; max_val: number | null; position: number; is_calculated: boolean; formula: string | null; pi_point: string | null; hidden: boolean };
 
 function Methods() {
   const qc = useQueryClient();
+  const { user } = useAuth();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [newMethodName, setNewMethodName] = useState("");
+  const [renaming, setRenaming] = useState(false);
+  const [renameValue, setRenameValue] = useState("");
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deleteBusy, setDeleteBusy] = useState(false);
 
   const { data: methods = [] } = useQuery({
     queryKey: ["methods"],
@@ -69,14 +87,36 @@ function Methods() {
     setDraftFields([]);
   }
 
-  async function deleteMethod() {
+  async function saveRename() {
     if (!selectedId) return;
-    if (!confirm("Delete this method and all its fields?")) return;
-    const { error } = await supabase.from("methods").delete().eq("id", selectedId);
+    const name = renameValue.trim();
+    if (!name) { toast.error("Name cannot be empty"); return; }
+    const { error } = await supabase.from("methods").update({ name }).eq("id", selectedId);
     if (error) { toast.error(error.message); return; }
+    toast.success("Method renamed");
+    setRenaming(false);
+    qc.invalidateQueries({ queryKey: ["methods"] });
+  }
+
+  async function confirmDelete() {
+    if (!selectedId || !user?.email) return;
+    if (!deletePassword) { toast.error("Password required"); return; }
+    setDeleteBusy(true);
+    const { error: authErr } = await supabase.auth.signInWithPassword({ email: user.email, password: deletePassword });
+    if (authErr) {
+      setDeleteBusy(false);
+      toast.error("Incorrect password");
+      return;
+    }
+    const { error } = await supabase.from("methods").delete().eq("id", selectedId);
+    setDeleteBusy(false);
+    if (error) { toast.error(error.message); return; }
+    setDeleteOpen(false);
+    setDeletePassword("");
     setSelectedId(null);
     setDraftFields([]);
     qc.invalidateQueries({ queryKey: ["methods"] });
+    toast.success("Method deleted");
   }
 
   function addField(calculated = false) {
@@ -84,7 +124,7 @@ function Methods() {
     const list = draftFields.length ? draftFields : baseFields.map((f) => ({ ...f }));
     setDraftFields([
       ...list,
-      { id: `new-${Date.now()}`, method_id: selectedId, description: "", unit: "", min_val: null, max_val: null, position: list.length, is_calculated: calculated, formula: calculated ? "" : null, pi_point: null },
+      { id: `new-${Date.now()}`, method_id: selectedId, description: "", unit: "", min_val: null, max_val: null, position: list.length, is_calculated: calculated, formula: calculated ? "" : null, pi_point: null, hidden: false },
     ]);
   }
 
@@ -132,6 +172,7 @@ function Methods() {
         is_calculated: f.is_calculated,
         formula: f.is_calculated ? (f.formula ?? "") : null,
         pi_point: f.pi_point && f.pi_point.trim() !== "" ? f.pi_point.trim() : null,
+        hidden: !!f.hidden,
       };
       if (f.id.startsWith("new-")) {
         const { error } = await supabase.from("method_fields").insert(payload);
@@ -180,7 +221,39 @@ function Methods() {
         <Card>
           <CardHeader>
             <CardTitle className="text-base">
-              {selectedId ? methods.find((m) => m.id === selectedId)?.name : "Select a method"}
+              {selectedId ? (
+                renaming ? (
+                  <div className="flex items-center gap-2">
+                    <Input
+                      autoFocus
+                      value={renameValue}
+                      onChange={(e) => setRenameValue(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter") saveRename(); if (e.key === "Escape") setRenaming(false); }}
+                      className="h-8 max-w-sm"
+                    />
+                    <Button size="sm" onClick={saveRename}>Save</Button>
+                    <Button size="sm" variant="ghost" onClick={() => setRenaming(false)}>Cancel</Button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <span>{methods.find((m) => m.id === selectedId)?.name}</span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7"
+                      onClick={() => {
+                        setRenameValue(methods.find((m) => m.id === selectedId)?.name ?? "");
+                        setRenaming(true);
+                      }}
+                      aria-label="Rename method"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                )
+              ) : (
+                "Select a method"
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -192,7 +265,7 @@ function Methods() {
                     <TabsTrigger value="fields">Fields</TabsTrigger>
                     <TabsTrigger value="inventory">Inventory</TabsTrigger>
                   </TabsList>
-                  <Button variant="ghost" size="sm" onClick={deleteMethod} className="text-destructive hover:text-destructive">
+                  <Button variant="ghost" size="sm" onClick={() => { setDeletePassword(""); setDeleteOpen(true); }} className="text-destructive hover:text-destructive">
                     <Trash2 className="h-4 w-4 mr-2" />Delete method
                   </Button>
                 </div>
@@ -210,13 +283,13 @@ function Methods() {
                   )}
                   {workingFields.length > 0 && (
                     <div className="overflow-x-auto -mx-2">
-                      <div className="space-y-2 min-w-[600px] px-2">
-                        <div className="grid grid-cols-[32px_1fr_120px_140px_100px_100px_40px] gap-2 px-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                          <div></div><div>Description</div><div>Unit</div><div>PI Point</div><div>Min</div><div>Max</div><div></div>
+                      <div className="space-y-2 min-w-[660px] px-2">
+                        <div className="grid grid-cols-[32px_1fr_120px_140px_100px_100px_60px_40px] gap-2 px-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                          <div></div><div>Description</div><div>Unit</div><div>PI Point</div><div>Min</div><div>Max</div><div className="text-center">Hidden</div><div></div>
                         </div>
                         {workingFields.map((f, i) => (
                           <div key={f.id} className="space-y-1">
-                            <div className="grid grid-cols-[32px_1fr_120px_140px_100px_100px_40px] gap-2 items-center">
+                            <div className="grid grid-cols-[32px_1fr_120px_140px_100px_100px_60px_40px] gap-2 items-center">
                               <div className="flex flex-col">
                                 <button type="button" onClick={() => moveField(f.id, -1)} disabled={i === 0} className="h-4 flex items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:hover:text-muted-foreground" aria-label="Move up">
                                   <ChevronUp className="h-3.5 w-3.5" />
@@ -227,12 +300,16 @@ function Methods() {
                               </div>
                               <div className="flex items-center gap-2">
                                 {f.is_calculated && <Calculator className="h-3.5 w-3.5 text-muted-foreground shrink-0" />}
+                                {f.hidden && <EyeOff className="h-3.5 w-3.5 text-muted-foreground shrink-0" />}
                                 <Input value={f.description} onChange={(e) => updateField(f.id, { description: e.target.value })} placeholder={f.is_calculated ? "e.g. Average" : "e.g. Acid number"} />
                               </div>
                               <Input value={f.unit ?? ""} onChange={(e) => updateField(f.id, { unit: e.target.value })} placeholder="mg KOH/g" />
                               <Input className="font-mono text-xs" value={f.pi_point ?? ""} onChange={(e) => updateField(f.id, { pi_point: e.target.value })} placeholder="PI tag" />
                               <Input className="font-mono" value={f.min_val ?? ""} onChange={(e) => updateField(f.id, { min_val: e.target.value === "" ? null : (e.target.value as any) })} inputMode="decimal" placeholder="0.0" />
                               <Input className="font-mono" value={f.max_val ?? ""} onChange={(e) => updateField(f.id, { max_val: e.target.value === "" ? null : (e.target.value as any) })} inputMode="decimal" placeholder="0.0" />
+                              <div className="flex justify-center">
+                                <Checkbox checked={!!f.hidden} onCheckedChange={(v) => updateField(f.id, { hidden: v === true })} aria-label="Hidden" />
+                              </div>
                               <Button variant="ghost" size="icon" onClick={() => removeField(f.id)}><Trash2 className="h-4 w-4 text-muted-foreground" /></Button>
                             </div>
                             {f.is_calculated && (
@@ -271,6 +348,38 @@ function Methods() {
           </CardContent>
         </Card>
       </div>
+
+      <AlertDialog open={deleteOpen} onOpenChange={(o) => { setDeleteOpen(o); if (!o) setDeletePassword(""); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this method?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the method and all its fields. Enter your password to confirm.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="delete-pass" className="text-xs">Password</Label>
+            <Input
+              id="delete-pass"
+              type="password"
+              autoComplete="current-password"
+              value={deletePassword}
+              onChange={(e) => setDeletePassword(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter" && !deleteBusy) confirmDelete(); }}
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteBusy}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); confirmDelete(); }}
+              disabled={deleteBusy || !deletePassword}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteBusy ? "Deleting…" : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

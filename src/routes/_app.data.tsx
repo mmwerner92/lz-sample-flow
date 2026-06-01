@@ -37,7 +37,7 @@ function DataView() {
         .select(`
           id, sample_number, sampled_at, date_analyzed, color, oil_visibility, particulates, analyst_id,
           sample_points!inner(name),
-          sample_readings(value, method_fields!inner(description, unit, methods!inner(name)))
+          sample_readings(value, method_fields!inner(description, unit, hidden, methods!inner(name)))
         `)
         .order("sampled_at", { ascending: false })
         .limit(1000);
@@ -65,10 +65,13 @@ function DataView() {
           particulates: s.particulates as string | null,
           sample_point: (s.sample_points as { name: string })?.name ?? "",
           analyst: prof?.full_name ?? prof?.email ?? "",
-          readings: ((s.sample_readings as Array<Record<string, unknown>>) ?? []).map((r) => {
-            const mf = r.method_fields as { description: string; unit: string | null; methods: { name: string } };
-            return { method: mf.methods.name, field: mf.description, unit: mf.unit, value: r.value as number | null };
-          }),
+          readings: ((s.sample_readings as Array<Record<string, unknown>>) ?? [])
+            .map((r) => {
+              const mf = r.method_fields as { description: string; unit: string | null; hidden: boolean; methods: { name: string } };
+              return { method: mf.methods.name, field: mf.description, unit: mf.unit, value: r.value as number | null, hidden: mf.hidden };
+            })
+            .filter((r) => !r.hidden)
+            .map(({ hidden: _h, ...rest }) => rest),
         };
       });
       return rows;

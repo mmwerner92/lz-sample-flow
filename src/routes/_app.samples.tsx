@@ -121,6 +121,7 @@ function SampleEntry() {
         .from("method_fields")
         .select("*")
         .eq("method_id", selectedMethodId)
+        .eq("hidden", false)
         .order("position");
       if (error) throw error;
       return data as MethodField[];
