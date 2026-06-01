@@ -1,7 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
-import { FlaskConical, BeakerIcon, Table2, LogOut, Users, Package, History, ChevronLeft, ChevronRight, Menu, X, Moon, Sun, CalendarPlus, CalendarClock } from "lucide-react";
+import { FlaskConical, BeakerIcon, Table2, LogOut, Users, Package, History, ChevronLeft, ChevronRight, Menu, X, Moon, Sun, CalendarPlus, CalendarClock, Upload } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getMyAdminStatus } from "@/lib/admin-users.functions";
@@ -15,6 +15,7 @@ const baseNav = [
   { to: "/samples", label: "Sample Entry", icon: BeakerIcon },
   { to: "/methods", label: "Methods", icon: FlaskConical },
   { to: "/data", label: "Data View", icon: Table2 },
+  { to: "/imports", label: "Imports", icon: Upload },
   { to: "/inventory", label: "Inventory", icon: Package },
   { to: "/usage", label: "Inventory Usage", icon: History },
   { to: "/schedule", label: "Schedule Samples", icon: CalendarPlus },
