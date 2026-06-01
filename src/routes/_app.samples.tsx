@@ -750,10 +750,8 @@ function SampleEntry() {
                   const valuesByDesc: Record<string, number> = {};
                   methodFields.forEach((f) => {
                     if (!f.is_calculated) {
-                      const rv = readings[f.id];
-                      if (rv !== undefined && rv !== "" && !Number.isNaN(Number(rv))) {
-                        valuesByDesc[f.description] = Number(rv);
-                      }
+                      const n = extractNumeric(readings[f.id]);
+                      if (n !== null) valuesByDesc[f.description] = n;
                     }
                   });
                   return methodFields.map((f) => {
@@ -766,7 +764,7 @@ function SampleEntry() {
                     } else {
                       const v = readings[f.id] ?? "";
                       displayValue = v;
-                      num = v === "" ? null : Number(v);
+                      num = extractNumeric(v);
                     }
                     const oor =
                       num !== null &&
