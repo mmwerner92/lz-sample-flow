@@ -172,8 +172,8 @@ export function DataViewTable() {
 
       const rows: Row[] = (samples ?? []).map((s: Record<string, unknown>) => {
         const prof = profileMap.get(s.analyst_id as string);
-        const readingByFieldId: Record<string, number | null> = {};
-        ((s.sample_readings as Array<{ value: number | null; method_field_id: string }>) ?? []).forEach((r) => {
+        const readingByFieldId: Record<string, string | null> = {};
+        ((s.sample_readings as Array<{ value: string | null; method_field_id: string }>) ?? []).forEach((r) => {
           readingByFieldId[r.method_field_id] = r.value;
         });
         return {
