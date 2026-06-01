@@ -341,7 +341,7 @@ function DataView() {
                     <th
                       key={m.id}
                       colSpan={m.fields.length}
-                      className="text-center font-semibold text-foreground px-3 py-2 border-b border-l whitespace-nowrap"
+                      className="text-center font-semibold text-foreground px-3 py-2 border-b border-l whitespace-nowrap bg-muted/60 sticky top-0 z-10"
                     >
                       {m.name}
                     </th>
@@ -352,7 +352,8 @@ function DataView() {
                     m.fields.map((f, idx) => (
                       <th
                         key={f.id}
-                        className={`text-left font-medium px-3 py-2 whitespace-nowrap border-b text-xs ${idx === 0 ? "border-l" : ""}`}
+                        className={`text-left font-medium px-3 py-2 whitespace-nowrap border-b text-xs bg-muted/60 sticky z-10 ${idx === 0 ? "border-l" : ""}`}
+                        style={{ top: 37 }}
                       >
                         {f.description}
                         {f.unit ? <span className="text-muted-foreground"> ({f.unit})</span> : null}
