@@ -356,6 +356,7 @@ export type Database = {
           created_at: string
           date_analyzed: string | null
           id: string
+          notes: string | null
           oil_visibility: string | null
           particulates: string | null
           sample_number: string
@@ -370,6 +371,7 @@ export type Database = {
           created_at?: string
           date_analyzed?: string | null
           id?: string
+          notes?: string | null
           oil_visibility?: string | null
           particulates?: string | null
           sample_number: string
@@ -384,6 +386,7 @@ export type Database = {
           created_at?: string
           date_analyzed?: string | null
           id?: string
+          notes?: string | null
           oil_visibility?: string | null
           particulates?: string | null
           sample_number?: string
