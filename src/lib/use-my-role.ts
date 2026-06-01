@@ -7,7 +7,7 @@ export type AppRole = "admin" | "editor" | "operations" | "user";
 
 // Paths each role may access. Admin has access to all.
 const ACCESS: Record<Exclude<AppRole, "admin">, string[]> = {
-  editor: ["/samples", "/methods", "/data", "/inventory", "/usage", "/schedule", "/schedule-view"],
+  editor: ["/samples", "/methods", "/data", "/inventory", "/usage", "/schedule", "/schedule-view", "/imports"],
   operations: ["/data"],
   user: ["/samples", "/data", "/schedule-view"],
 };
