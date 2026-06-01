@@ -289,14 +289,13 @@ function SampleEntry() {
     }
 
     if (selectedMethodId && methodFields.length) {
-      // Build description -> value map for formulas (input fields only)
+      // Build description -> numeric value map for formulas (input fields only).
+      // Strings with embedded numerics (e.g. "12.5 ppm") contribute their numeric portion.
       const valuesByDesc: Record<string, number> = {};
       methodFields.forEach((f) => {
         if (!f.is_calculated) {
-          const v = readings[f.id];
-          if (v !== undefined && v !== "" && !Number.isNaN(Number(v))) {
-            valuesByDesc[f.description] = Number(v);
-          }
+          const n = extractNumeric(readings[f.id]);
+          if (n !== null) valuesByDesc[f.description] = n;
         }
       });
       const rows = methodFields
@@ -304,13 +303,13 @@ function SampleEntry() {
           if (f.is_calculated) {
             const computed = evalFormula(f.formula ?? "", valuesByDesc);
             if (computed == null) return null;
-            return { sample_id: sampleId!, method_field_id: f.id, value: computed };
+            return { sample_id: sampleId!, method_field_id: f.id, value: String(computed) };
           }
           const v = readings[f.id];
           if (v === undefined || v === "") return null;
-          return { sample_id: sampleId!, method_field_id: f.id, value: Number(v) };
+          return { sample_id: sampleId!, method_field_id: f.id, value: String(v) };
         })
-        .filter((r): r is { sample_id: string; method_field_id: string; value: number } => r !== null);
+        .filter((r): r is { sample_id: string; method_field_id: string; value: string } => r !== null);
       if (rows.length) {
         const { error } = await supabase
           .from("sample_readings")
