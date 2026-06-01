@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as DataPopupRouteImport } from './routes/data-popup'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppUsersRouteImport } from './routes/_app.users'
@@ -25,6 +26,11 @@ import { Route as AppDataRouteImport } from './routes/_app.data'
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DataPopupRoute = DataPopupRouteImport.update({
+  id: '/data-popup',
+  path: '/data-popup',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppRoute = AppRouteImport.update({
@@ -84,6 +90,7 @@ const AppDataRoute = AppDataRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/data-popup': typeof DataPopupRoute
   '/login': typeof LoginRoute
   '/data': typeof AppDataRoute
   '/imports': typeof AppImportsRoute
@@ -97,6 +104,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/data-popup': typeof DataPopupRoute
   '/login': typeof LoginRoute
   '/data': typeof AppDataRoute
   '/imports': typeof AppImportsRoute
@@ -112,6 +120,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_app': typeof AppRouteWithChildren
+  '/data-popup': typeof DataPopupRoute
   '/login': typeof LoginRoute
   '/_app/data': typeof AppDataRoute
   '/_app/imports': typeof AppImportsRoute
@@ -127,6 +136,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/data-popup'
     | '/login'
     | '/data'
     | '/imports'
@@ -140,6 +150,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/data-popup'
     | '/login'
     | '/data'
     | '/imports'
@@ -154,6 +165,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_app'
+    | '/data-popup'
     | '/login'
     | '/_app/data'
     | '/_app/imports'
@@ -169,6 +181,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
+  DataPopupRoute: typeof DataPopupRoute
   LoginRoute: typeof LoginRoute
 }
 
@@ -179,6 +192,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/data-popup': {
+      id: '/data-popup'
+      path: '/data-popup'
+      fullPath: '/data-popup'
+      preLoaderRoute: typeof DataPopupRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_app': {
@@ -290,6 +310,7 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
+  DataPopupRoute: DataPopupRoute,
   LoginRoute: LoginRoute,
 }
 export const routeTree = rootRouteImport
