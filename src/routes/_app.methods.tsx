@@ -221,7 +221,39 @@ function Methods() {
         <Card>
           <CardHeader>
             <CardTitle className="text-base">
-              {selectedId ? methods.find((m) => m.id === selectedId)?.name : "Select a method"}
+              {selectedId ? (
+                renaming ? (
+                  <div className="flex items-center gap-2">
+                    <Input
+                      autoFocus
+                      value={renameValue}
+                      onChange={(e) => setRenameValue(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter") saveRename(); if (e.key === "Escape") setRenaming(false); }}
+                      className="h-8 max-w-sm"
+                    />
+                    <Button size="sm" onClick={saveRename}>Save</Button>
+                    <Button size="sm" variant="ghost" onClick={() => setRenaming(false)}>Cancel</Button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <span>{methods.find((m) => m.id === selectedId)?.name}</span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7"
+                      onClick={() => {
+                        setRenameValue(methods.find((m) => m.id === selectedId)?.name ?? "");
+                        setRenaming(true);
+                      }}
+                      aria-label="Rename method"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                )
+              ) : (
+                "Select a method"
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -233,7 +265,7 @@ function Methods() {
                     <TabsTrigger value="fields">Fields</TabsTrigger>
                     <TabsTrigger value="inventory">Inventory</TabsTrigger>
                   </TabsList>
-                  <Button variant="ghost" size="sm" onClick={deleteMethod} className="text-destructive hover:text-destructive">
+                  <Button variant="ghost" size="sm" onClick={() => { setDeletePassword(""); setDeleteOpen(true); }} className="text-destructive hover:text-destructive">
                     <Trash2 className="h-4 w-4 mr-2" />Delete method
                   </Button>
                 </div>
