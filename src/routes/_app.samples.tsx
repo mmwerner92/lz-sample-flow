@@ -176,6 +176,7 @@ function SampleEntry() {
     setDateAnalyzed(todayISO());
 
     setStatus("");
+    setNotes("");
     setReadings({});
   };
 
