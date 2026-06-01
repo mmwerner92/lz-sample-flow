@@ -125,13 +125,16 @@ function UsersPage() {
             </div>
             <div className="space-y-1">
               <Label>Role</Label>
-              <Select value={role} onValueChange={(v) => setNewRole(v as "admin" | "user")}>
+              <Select value={role} onValueChange={(v) => setNewRole(v as "admin" | "editor" | "operations" | "user")}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="user">User</SelectItem>
+                  <SelectItem value="operations">Operations</SelectItem>
+                  <SelectItem value="editor">Editor</SelectItem>
                   <SelectItem value="admin">Admin</SelectItem>
                 </SelectContent>
               </Select>
+
             </div>
             <Button type="submit" disabled={createMut.isPending}>
               <UserPlus className="h-4 w-4 mr-2" />Create
