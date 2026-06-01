@@ -315,13 +315,22 @@ function DataView() {
 
           <div className="rounded-md border overflow-auto">
             <table className="w-full text-sm border-collapse">
-              <thead className="bg-muted/60 text-muted-foreground sticky top-0">
+              <thead className="text-muted-foreground">
                 <tr>
                   {metaCols.map((c) => (
                     <th
                       key={c.key as string}
                       rowSpan={2}
-                      className="text-left font-medium px-3 py-2 whitespace-nowrap border-b align-bottom"
+                      style={{
+                        width: c.width,
+                        minWidth: c.width,
+                        ...(c.sticky !== undefined ? { left: c.sticky } : {}),
+                      }}
+                      className={`text-left font-medium px-3 py-2 whitespace-nowrap border-b align-bottom bg-muted/60 ${
+                        c.sticky !== undefined ? "sticky z-30" : "sticky top-0 z-20"
+                      } ${c.sticky !== undefined ? "top-0" : ""} ${
+                        c.sticky !== undefined && c.sticky > 0 ? "border-l" : ""
+                      }`}
                     >
                       <button className="inline-flex items-center gap-1 hover:text-foreground" onClick={() => toggleSort(c.key as string)}>
                         {c.label}<ArrowUpDown className="h-3 w-3 opacity-60" />
