@@ -496,7 +496,14 @@ function ImportsPage() {
                       <td className="px-2 py-1.5 whitespace-nowrap text-muted-foreground">
                         {r.sampled_at?.replace("T", " ").slice(0, 16) ?? "—"}
                       </td>
-                      <td className="px-2 py-1.5">{r.sample_point_name || "—"}</td>
+                      <td className="px-2 py-1.5">
+                        {r.sample_point_name || "—"}
+                        {r.sample_point_name && !r.resolvedSamplePointId && (
+                          <span className="ml-1 text-[10px] uppercase font-medium text-emerald-700 dark:text-emerald-300">
+                            (new)
+                          </span>
+                        )}
+                      </td>
                       <td className="px-2 py-1.5">
                         {r.analystMissing ? (
                           <span className="text-amber-600 dark:text-amber-400">
