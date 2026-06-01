@@ -207,6 +207,7 @@ function SampleEntry() {
 
     setDateAnalyzed(s.date_analyzed ?? "");
     setStatus((s.status as SampleStatus) ?? "");
+    setNotes(s.notes ?? "");
     setReadings({});
     return true;
   }
