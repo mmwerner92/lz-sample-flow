@@ -49,7 +49,8 @@ function UsersPage() {
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setNewRole] = useState<"admin" | "user">("user");
+  const [role, setNewRole] = useState<"admin" | "editor" | "operations" | "user">("user");
+
 
   const createMut = useMutation({
     mutationFn: () =>
@@ -63,7 +64,7 @@ function UsersPage() {
   });
 
   const roleMut = useMutation({
-    mutationFn: (v: { user_id: string; role: "admin" | "user" }) =>
+    mutationFn: (v: { user_id: string; role: "admin" | "editor" | "operations" | "user" }) =>
       setRole({ data: v }),
     onSuccess: () => {
       toast.success("Role updated");
@@ -71,6 +72,7 @@ function UsersPage() {
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
 
   const delMut = useMutation({
     mutationFn: (user_id: string) => del({ data: { user_id } }),
@@ -123,13 +125,16 @@ function UsersPage() {
             </div>
             <div className="space-y-1">
               <Label>Role</Label>
-              <Select value={role} onValueChange={(v) => setNewRole(v as "admin" | "user")}>
+              <Select value={role} onValueChange={(v) => setNewRole(v as "admin" | "editor" | "operations" | "user")}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="user">User</SelectItem>
+                  <SelectItem value="operations">Operations</SelectItem>
+                  <SelectItem value="editor">Editor</SelectItem>
                   <SelectItem value="admin">Admin</SelectItem>
                 </SelectContent>
               </Select>
+
             </div>
             <Button type="submit" disabled={createMut.isPending}>
               <UserPlus className="h-4 w-4 mr-2" />Create
@@ -159,15 +164,28 @@ function UsersPage() {
                     ))}
                   </div>
                   <Select
-                    value={a.roles.includes("admin") ? "admin" : "user"}
-                    onValueChange={(v) => roleMut.mutate({ user_id: a.id, role: v as "admin" | "user" })}
+                    value={
+                      a.roles.includes("admin")
+                        ? "admin"
+                        : a.roles.includes("editor")
+                        ? "editor"
+                        : a.roles.includes("operations")
+                        ? "operations"
+                        : "user"
+                    }
+                    onValueChange={(v) =>
+                      roleMut.mutate({ user_id: a.id, role: v as "admin" | "editor" | "operations" | "user" })
+                    }
                   >
-                    <SelectTrigger className="w-[120px]"><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="user">User</SelectItem>
+                      <SelectItem value="operations">Operations</SelectItem>
+                      <SelectItem value="editor">Editor</SelectItem>
                       <SelectItem value="admin">Admin</SelectItem>
                     </SelectContent>
                   </Select>
+
                   <Button
                     variant="outline"
                     size="sm"

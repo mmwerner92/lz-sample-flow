@@ -47,7 +47,7 @@ export const createAccount = createServerFn({ method: "POST" })
         email: z.string().email(),
         password: z.string().min(8).max(72),
         full_name: z.string().min(1).max(255),
-        role: z.enum(["admin", "user"]),
+        role: z.enum(["admin", "editor", "operations", "user"]),
       })
       .parse(input),
   )
@@ -77,10 +77,11 @@ export const setAccountRole = createServerFn({ method: "POST" })
     z
       .object({
         user_id: z.string().uuid(),
-        role: z.enum(["admin", "user"]),
+        role: z.enum(["admin", "editor", "operations", "user"]),
       })
       .parse(input),
   )
+
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
     // Replace roles with just this one
@@ -132,8 +133,15 @@ export const getMyAdminStatus = createServerFn({ method: "GET" })
     const { data } = await supabaseAdmin
       .from("user_roles")
       .select("role")
-      .eq("user_id", context.userId)
-      .eq("role", "admin")
-      .maybeSingle();
-    return { isAdmin: !!data };
+      .eq("user_id", context.userId);
+    const roles = (data ?? []).map((r) => r.role as string);
+    const role = (roles.includes("admin")
+      ? "admin"
+      : roles.includes("editor")
+      ? "editor"
+      : roles.includes("operations")
+      ? "operations"
+      : "user") as "admin" | "editor" | "operations" | "user";
+    return { isAdmin: role === "admin", role };
   });
+
