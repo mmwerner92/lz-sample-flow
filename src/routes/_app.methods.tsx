@@ -116,8 +116,8 @@ function Methods() {
         method_id: selectedId,
         description: f.description,
         unit: f.unit || null,
-        min_val: f.min_val,
-        max_val: f.max_val,
+        min_val: f.min_val === null || f.min_val === undefined || (f.min_val as any) === "" ? null : Number(f.min_val),
+        max_val: f.max_val === null || f.max_val === undefined || (f.max_val as any) === "" ? null : Number(f.max_val),
         position: i,
         is_calculated: f.is_calculated,
         formula: f.is_calculated ? (f.formula ?? "") : null,
@@ -213,8 +213,8 @@ function Methods() {
                               </div>
                               <Input value={f.unit ?? ""} onChange={(e) => updateField(f.id, { unit: e.target.value })} placeholder="mg KOH/g" />
                               <Input className="font-mono text-xs" value={f.pi_point ?? ""} onChange={(e) => updateField(f.id, { pi_point: e.target.value })} placeholder="PI tag" />
-                              <Input className="font-mono" value={f.min_val ?? ""} onChange={(e) => updateField(f.id, { min_val: e.target.value === "" ? null : Number(e.target.value) })} inputMode="decimal" />
-                              <Input className="font-mono" value={f.max_val ?? ""} onChange={(e) => updateField(f.id, { max_val: e.target.value === "" ? null : Number(e.target.value) })} inputMode="decimal" />
+                              <Input className="font-mono" value={f.min_val ?? ""} onChange={(e) => updateField(f.id, { min_val: e.target.value === "" ? null : (e.target.value as any) })} inputMode="decimal" placeholder="0.0" />
+                              <Input className="font-mono" value={f.max_val ?? ""} onChange={(e) => updateField(f.id, { max_val: e.target.value === "" ? null : (e.target.value as any) })} inputMode="decimal" placeholder="0.0" />
                               <Button variant="ghost" size="icon" onClick={() => removeField(f.id)}><Trash2 className="h-4 w-4 text-muted-foreground" /></Button>
                             </div>
                             {f.is_calculated && (
