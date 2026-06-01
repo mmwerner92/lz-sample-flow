@@ -11,6 +11,20 @@ import { ArrowUpDown, Search, Download, ChevronDown } from "lucide-react";
 type MethodField = { id: string; description: string; unit: string | null; position: number };
 type Method = { id: string; name: string; fields: MethodField[] };
 
+// Format sampled_at: show date-only when the value is exact midnight UTC
+// (this is how Excel date-only imports are stored). Otherwise show date + HH:MM.
+function formatSampledAt(v: string | null): string {
+  if (!v) return "—";
+  // PostgREST returns timestamptz as ISO like "2026-05-21T00:00:00+00:00".
+  // Use string parsing so we don't shift days across local timezones.
+  const m = v.match(/^(\d{4}-\d{2}-\d{2})[T ](\d{2}):(\d{2}):(\d{2}(?:\.\d+)?)(Z|[+-]\d{2}:?\d{2})?$/);
+  if (!m) return v;
+  const [, date, hh, mm, ss, tz] = m;
+  const isMidnightUtc =
+    hh === "00" && mm === "00" && parseFloat(ss) === 0 && (tz === "Z" || tz === "+00:00" || tz === "+00" || tz === "+0000");
+  return isMidnightUtc ? date : `${date} ${hh}:${mm}`;
+}
+
 type Row = {
   id: string;
   sample_number: string;
@@ -362,7 +376,7 @@ export function DataViewTable() {
               {sorted.map((r) => (
                 <tr key={r.id} className="border-t hover:bg-muted/40 group">
                   <td className="px-3 py-2 font-mono sticky left-0 z-10 bg-background group-hover:bg-muted" style={{ width: 140, minWidth: 140 }}>{r.sample_number}</td>
-                  <td className="px-3 py-2 whitespace-nowrap text-xs text-muted-foreground sticky z-10 bg-background group-hover:bg-muted border-l" style={{ left: 140, width: 150, minWidth: 150 }}>{r.sampled_at?.replace("T", " ").slice(0, 16) ?? "—"}</td>
+                  <td className="px-3 py-2 whitespace-nowrap text-xs text-muted-foreground sticky z-10 bg-background group-hover:bg-muted border-l" style={{ left: 140, width: 150, minWidth: 150 }}>{formatSampledAt(r.sampled_at)}</td>
                   <td className="px-3 py-2 sticky z-10 bg-background group-hover:bg-muted border-l" style={{ left: 290, width: 160, minWidth: 160 }}>{r.sample_point}</td>
                   <td className="px-3 py-2">{r.analyst}</td>
                   <td className="px-3 py-2 whitespace-nowrap text-xs text-muted-foreground">{r.date_analyzed ?? "—"}</td>
