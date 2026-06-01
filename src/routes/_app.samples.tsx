@@ -263,6 +263,7 @@ function SampleEntry() {
       particulates: particulates || null,
       date_analyzed: dateAnalyzed || null,
       status: status || null,
+      notes: notes || null,
     };
     let sampleId = activeSampleId;
     if (sampleId) {
@@ -366,6 +367,7 @@ function SampleEntry() {
       particulates: particulates || null,
       date_analyzed: dateAnalyzed || null,
       status: status || null,
+      notes: notes || null,
     };
     const { data, error } = await supabase.from("samples").insert(payload).select("id").single();
     if (error) {
@@ -433,6 +435,7 @@ function SampleEntry() {
       particulates: particulates || null,
       date_analyzed: dateAnalyzed || null,
       status: status || null,
+      notes: notes || null,
     };
     const { data, error } = await supabase.from("samples").insert(payload).select("id").single();
     if (error) {
