@@ -684,6 +684,14 @@ function SampleEntry() {
                 />
               </div>
               <div className="space-y-1">
+                <Label className="text-xs">Notes</Label>
+                <Textarea
+                  rows={2}
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                />
+              </div>
+              <div className="space-y-1">
                 <Label className="text-xs">Status</Label>
                 <Select value={status} onValueChange={(v) => setStatus(v as SampleStatus)}>
                   <SelectTrigger className="h-9">
