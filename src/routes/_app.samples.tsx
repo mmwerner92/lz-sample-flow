@@ -799,7 +799,6 @@ function SampleEntry() {
                             className={`font-mono h-8 text-xs ${oor ? "border-destructive text-destructive" : ""}`}
                             value={displayValue}
                             onChange={(e) => setReadings((r) => ({ ...r, [f.id]: e.target.value }))}
-                            inputMode="decimal"
                           />
                         )}
                       </div>
