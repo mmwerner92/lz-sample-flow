@@ -164,15 +164,28 @@ function UsersPage() {
                     ))}
                   </div>
                   <Select
-                    value={a.roles.includes("admin") ? "admin" : "user"}
-                    onValueChange={(v) => roleMut.mutate({ user_id: a.id, role: v as "admin" | "user" })}
+                    value={
+                      a.roles.includes("admin")
+                        ? "admin"
+                        : a.roles.includes("editor")
+                        ? "editor"
+                        : a.roles.includes("operations")
+                        ? "operations"
+                        : "user"
+                    }
+                    onValueChange={(v) =>
+                      roleMut.mutate({ user_id: a.id, role: v as "admin" | "editor" | "operations" | "user" })
+                    }
                   >
-                    <SelectTrigger className="w-[120px]"><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="user">User</SelectItem>
+                      <SelectItem value="operations">Operations</SelectItem>
+                      <SelectItem value="editor">Editor</SelectItem>
                       <SelectItem value="admin">Admin</SelectItem>
                     </SelectContent>
                   </Select>
+
                   <Button
                     variant="outline"
                     size="sm"
