@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Trash2, Save, Calculator, Package } from "lucide-react";
+import { Plus, Trash2, Save, Calculator, Package, ChevronUp, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 
 
