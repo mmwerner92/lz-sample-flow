@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Copy, Files, Plus, Save, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { evalFormula } from "@/lib/formula";
+import { evalFormula, extractNumeric } from "@/lib/formula";
 import { applyMethodInventoryUsage } from "@/lib/inventory-usage";
 import { SAMPLE_STATUSES, type SampleStatus } from "@/lib/schedule";
 
