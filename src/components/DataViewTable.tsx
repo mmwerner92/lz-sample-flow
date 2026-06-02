@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowUpDown, Search, Download, ChevronDown } from "lucide-react";
+import { ArrowUpDown, Search, Download, ChevronDown, Maximize2 } from "lucide-react";
 
 type MethodField = { id: string; description: string; unit: string | null; position: number };
 type Method = { id: string; name: string; fields: MethodField[] };
