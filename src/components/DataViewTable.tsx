@@ -42,11 +42,13 @@ function MultiSelect({
   items,
   selected,
   onChange,
+  onOpenChange,
 }: {
   label: string;
   items: { id: string; name: string }[];
   selected: Set<string>;
   onChange: (next: Set<string>) => void;
+  onOpenChange?: (open: boolean) => void;
 }) {
   const allSelected = items.length > 0 && selected.size === items.length;
   const summary =
@@ -56,7 +58,7 @@ function MultiSelect({
       ? "All"
       : `${selected.size} selected`;
   return (
-    <Popover>
+    <Popover onOpenChange={onOpenChange}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
@@ -331,6 +333,11 @@ export function DataViewTable({ fillHeight = false, onExpand }: { fillHeight?: b
             items={(methods ?? []).map((m) => ({ id: m.id, name: m.name }))}
             selected={selectedMethods}
             onChange={setSelectedMethods}
+            onOpenChange={(open) => {
+              if (open && methods && methods.length > 0 && selectedMethods.size === methods.length) {
+                setSelectedMethods(new Set());
+              }
+            }}
           />
           <MultiSelect
             label="Sample Points"
