@@ -126,6 +126,8 @@ export function DataViewTable() {
   const [sort, setSort] = useState<{ key: string; dir: "asc" | "desc" }>({ key: "sampled_at", dir: "desc" });
   const [selectedMethods, setSelectedMethods] = useState<Set<string>>(new Set());
   const [selectedPoints, setSelectedPoints] = useState<Set<string>>(new Set());
+  const [page, setPage] = useState(0);
+  const PAGE_SIZE = 100;
 
   const { data: methods } = useQuery({
     queryKey: ["data_view_methods"],
