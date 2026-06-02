@@ -225,8 +225,15 @@ export function DataViewTable() {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
+    const visibleFieldIds = visibleMethods.flatMap((m) => m.fields.map((f) => f.id));
     return rows.filter((r) => {
       if (selectedPoints.size > 0 && !selectedPoints.has(r.sample_point_id)) return false;
+      // Require at least one reading for a field belonging to a selected method
+      const hasReadingForSelectedMethod = visibleFieldIds.some((fid) => {
+        const v = r.readingByFieldId[fid];
+        return v !== undefined && v !== null && String(v).trim() !== "";
+      });
+      if (!hasReadingForSelectedMethod) return false;
       if (!q) return true;
       const readingStrs = visibleMethods.flatMap((m) =>
         m.fields.map((f) => String(r.readingByFieldId[f.id] ?? "")),
