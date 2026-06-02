@@ -668,12 +668,14 @@ function SampleEntry() {
                 </SelectContent>
               </Select>
             </div>
-            <Button variant="outline" size="sm" onClick={clearForm}>
-              <Plus className="h-4 w-4 mr-1" />
-              Clear
-            </Button>
+            <div className="space-y-1">
+              <Label className="text-xs invisible">Action</Label>
+              <Button variant="outline" size="sm" onClick={clearForm} className="font-bold">
+                Clear
+              </Button>
+            </div>
             <div className="ml-auto flex items-center justify-center flex-1">
-              <span className="text-2xl font-bold tracking-tight">
+              <span className="text-4xl font-bold tracking-tight">
                 {(() => {
                   const pointName = samplePoints.find((p) => p.id === samplePointId)?.name;
                   if (pointName) {
