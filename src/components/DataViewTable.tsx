@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowUpDown, Search, Download, ChevronDown } from "lucide-react";
+import { ArrowUpDown, Search, Download, ChevronDown, Maximize2 } from "lucide-react";
 
 type MethodField = { id: string; description: string; unit: string | null; position: number };
 type Method = { id: string; name: string; fields: MethodField[] };
@@ -121,7 +121,7 @@ function MultiSelect({
   );
 }
 
-export function DataViewTable({ fillHeight = false }: { fillHeight?: boolean } = {}) {
+export function DataViewTable({ fillHeight = false, onExpand }: { fillHeight?: boolean; onExpand?: () => void } = {}) {
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<{ key: string; dir: "asc" | "desc" }>({ key: "sampled_at", dir: "desc" });
   const [selectedMethods, setSelectedMethods] = useState<Set<string>>(new Set());
@@ -341,6 +341,11 @@ export function DataViewTable({ fillHeight = false }: { fillHeight?: boolean } =
           <Button variant="outline" size="sm" onClick={exportCsv}>
             <Download className="h-4 w-4 mr-2" />Export CSV
           </Button>
+          {onExpand && (
+            <Button variant="secondary" size="sm" onClick={onExpand} className="border border-primary/30 shadow-sm">
+              <Maximize2 className="h-4 w-4 mr-1.5" />Expand
+            </Button>
+          )}
         </div>
 
         <div className={`rounded-md border overflow-auto ${fillHeight ? "flex-1 min-h-0" : "max-h-[calc(100vh-200px)]"}`}>
