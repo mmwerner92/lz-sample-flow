@@ -121,7 +121,7 @@ function MultiSelect({
   );
 }
 
-export function DataViewTable() {
+export function DataViewTable({ fillHeight = false }: { fillHeight?: boolean } = {}) {
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<{ key: string; dir: "asc" | "desc" }>({ key: "sampled_at", dir: "desc" });
   const [selectedMethods, setSelectedMethods] = useState<Set<string>>(new Set());
@@ -319,12 +319,12 @@ export function DataViewTable() {
   }
 
   return (
-    <Card>
-      <CardContent className="p-4 space-y-4">
+    <Card className={fillHeight ? "h-full flex flex-col" : ""}>
+      <CardContent className={`p-2 space-y-2 ${fillHeight ? "flex-1 flex flex-col min-h-0" : ""}`}>
         <div className="flex flex-wrap items-center gap-2">
           <div className="relative max-w-sm flex-1 min-w-[200px]">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input className="pl-9" placeholder="Search samples, methods, values…" value={query} onChange={(e) => setQuery(e.target.value)} />
+            <Input className="pl-9 h-9" placeholder="Search samples, methods, values…" value={query} onChange={(e) => setQuery(e.target.value)} />
           </div>
           <MultiSelect
             label="Methods"
@@ -343,7 +343,7 @@ export function DataViewTable() {
           </Button>
         </div>
 
-        <div className="rounded-md border overflow-auto max-h-[calc(100vh-260px)]">
+        <div className={`rounded-md border overflow-auto ${fillHeight ? "flex-1 min-h-0" : "max-h-[calc(100vh-200px)]"}`}>
           <table className="w-full text-sm border-collapse">
             <thead className="text-muted-foreground">
               <tr>
