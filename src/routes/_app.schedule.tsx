@@ -117,8 +117,8 @@ function ScheduleSamples() {
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">Schedule Samples</h1>
-        <p className="text-xs text-muted-foreground">
+        <h1 className="text-2xl font-semibold tracking-tight">Schedule Samples</h1>
+        <p className="text-sm text-muted-foreground">
           Create recurring sample schedules and view what is upcoming.
         </p>
       </div>
