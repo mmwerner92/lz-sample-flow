@@ -42,11 +42,13 @@ function MultiSelect({
   items,
   selected,
   onChange,
+  onOpenChange,
 }: {
   label: string;
   items: { id: string; name: string }[];
   selected: Set<string>;
   onChange: (next: Set<string>) => void;
+  onOpenChange?: (open: boolean) => void;
 }) {
   const allSelected = items.length > 0 && selected.size === items.length;
   const summary =
