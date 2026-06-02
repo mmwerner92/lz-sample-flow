@@ -61,8 +61,25 @@ type SampleRow = {
 function genSampleNumber() {
   const d = new Date();
   const pad = (n: number) => String(n).padStart(2, "0");
-  const rnd = String(Math.floor(Math.random() * 100)).padStart(2, "0");
-  return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}-${rnd}`;
+  return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+}
+
+async function genUniqueSampleNumber(): Promise<string> {
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const candidate =
+      attempt === 0
+        ? genSampleNumber()
+        : `${genSampleNumber()}-${String(Math.floor(Math.random() * 100)).padStart(2, "0")}`;
+    const { data, error } = await supabase
+      .from("samples")
+      .select("id")
+      .eq("sample_number", candidate)
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) return candidate;
+  }
+  // Extremely unlikely fallback
+  return `${genSampleNumber()}-${Date.now().toString().slice(-4)}`;
 }
 
 function todayISO() {
