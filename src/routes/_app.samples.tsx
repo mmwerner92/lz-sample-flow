@@ -672,7 +672,11 @@ function SampleEntry() {
               <Plus className="h-4 w-4 mr-1" />
               Clear
             </Button>
-
+            <div className="ml-auto flex items-center justify-center flex-1">
+              <span className="text-2xl font-bold tracking-tight">
+                Sample: {samplePoints.find((p) => p.id === samplePointId)?.name ?? ""} - {sampleNumber}
+              </span>
+            </div>
           </div>
         </CardContent>
       </Card>
