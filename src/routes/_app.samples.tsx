@@ -269,6 +269,7 @@ function SampleEntry() {
   function clearForm() {
     resetForm();
     setSearchNumber("");
+    setSelectedMethodIds(new Set());
   }
 
 
