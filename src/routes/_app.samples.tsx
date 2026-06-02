@@ -128,26 +128,32 @@ function SampleEntry() {
   const [status, setStatus] = useState<SampleStatus | "">("");
   const [notes, setNotes] = useState("");
   const [activeSampleId, setActiveSampleId] = useState<string | null>(null);
-  const [selectedMethodId, setSelectedMethodId] = useState<string>("");
+  const [selectedMethodIds, setSelectedMethodIds] = useState<Set<string>>(new Set());
   const [readings, setReadings] = useState<Record<string, string>>({});
   const [searchPoint, setSearchPoint] = useState<string>("");
   const [searchNumber, setSearchNumber] = useState("");
   const [newPointName, setNewPointName] = useState("");
+  const [readingsExpanded, setReadingsExpanded] = useState(false);
+
+  const selectedMethodIdsKey = useMemo(
+    () => [...selectedMethodIds].sort().join(","),
+    [selectedMethodIds],
+  );
 
   const { data: methodFields = [] } = useQuery({
-    queryKey: ["method_fields", selectedMethodId],
+    queryKey: ["method_fields_multi", selectedMethodIdsKey],
     queryFn: async () => {
-      if (!selectedMethodId) return [];
+      if (selectedMethodIds.size === 0) return [];
       const { data, error } = await supabase
         .from("method_fields")
         .select("*")
-        .eq("method_id", selectedMethodId)
+        .in("method_id", [...selectedMethodIds])
         .eq("hidden", false)
         .order("position");
       if (error) throw error;
       return data as MethodField[];
     },
-    enabled: !!selectedMethodId,
+    enabled: selectedMethodIds.size > 0,
   });
 
   const { data: searchSampleNumbers = [] } = useQuery({
