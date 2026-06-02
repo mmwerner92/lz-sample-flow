@@ -56,7 +56,7 @@ function MultiSelect({
       ? "All"
       : `${selected.size} selected`;
   return (
-    <Popover onOpenChange={(open) => { if (open) onChange(new Set()); }}>
+    <Popover>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
@@ -330,19 +330,13 @@ export function DataViewTable({ fillHeight = false, onExpand }: { fillHeight?: b
             label="Methods"
             items={(methods ?? []).map((m) => ({ id: m.id, name: m.name }))}
             selected={selectedMethods}
-            onChange={(next) => {
-              setSelectedMethods(next);
-              setSelectedPoints(new Set());
-            }}
+            onChange={setSelectedMethods}
           />
           <MultiSelect
             label="Sample Points"
             items={samplePoints ?? []}
             selected={selectedPoints}
-            onChange={(next) => {
-              setSelectedPoints(next);
-              setSelectedMethods(new Set());
-            }}
+            onChange={setSelectedPoints}
           />
           <Button variant="outline" size="sm" onClick={exportCsv}>
             <Download className="h-4 w-4 mr-2" />Export CSV
