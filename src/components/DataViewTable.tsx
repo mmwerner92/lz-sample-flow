@@ -58,10 +58,19 @@ function MultiSelect({
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="outline" size="sm" className="justify-between gap-2 min-w-[180px]">
-          <span className="text-xs text-muted-foreground">{label}:</span>
-          <span className="text-xs">{summary}</span>
-          <ChevronDown className="h-3 w-3 opacity-60" />
+        <Button
+          variant="outline"
+          size="sm"
+          className="justify-between gap-2 min-w-[220px] border-primary/40 bg-primary/5 hover:bg-primary/10 hover:border-primary text-foreground shadow-sm"
+        >
+          <span className="text-xs font-semibold uppercase tracking-wide text-primary">{label}</span>
+          <span className="inline-flex items-center gap-1.5">
+            <span className="rounded-full bg-primary/15 text-primary text-[10px] font-semibold px-2 py-0.5">
+              {selected.size}/{items.length}
+            </span>
+            <span className="text-xs text-muted-foreground">{summary}</span>
+          </span>
+          <ChevronDown className="h-3.5 w-3.5 opacity-70" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-64 p-2" align="start">
@@ -117,6 +126,8 @@ export function DataViewTable() {
   const [sort, setSort] = useState<{ key: string; dir: "asc" | "desc" }>({ key: "sampled_at", dir: "desc" });
   const [selectedMethods, setSelectedMethods] = useState<Set<string>>(new Set());
   const [selectedPoints, setSelectedPoints] = useState<Set<string>>(new Set());
+  const [page, setPage] = useState(0);
+  const PAGE_SIZE = 100;
 
   const { data: methods } = useQuery({
     queryKey: ["data_view_methods"],
@@ -216,8 +227,15 @@ export function DataViewTable() {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
+    const visibleFieldIds = visibleMethods.flatMap((m) => m.fields.map((f) => f.id));
     return rows.filter((r) => {
       if (selectedPoints.size > 0 && !selectedPoints.has(r.sample_point_id)) return false;
+      // Require at least one reading for a field belonging to a selected method
+      const hasReadingForSelectedMethod = visibleFieldIds.some((fid) => {
+        const v = r.readingByFieldId[fid];
+        return v !== undefined && v !== null && String(v).trim() !== "";
+      });
+      if (!hasReadingForSelectedMethod) return false;
       if (!q) return true;
       const readingStrs = visibleMethods.flatMap((m) =>
         m.fields.map((f) => String(r.readingByFieldId[f.id] ?? "")),
@@ -240,6 +258,16 @@ export function DataViewTable() {
     });
     return arr;
   }, [filtered, sort]);
+
+  // Reset to first page when filters/search/sort change
+  useEffect(() => {
+    setPage(0);
+  }, [query, selectedMethods, selectedPoints, sort]);
+
+  const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages - 1);
+  const pageStart = currentPage * PAGE_SIZE;
+  const pageRows = sorted.slice(pageStart, pageStart + PAGE_SIZE);
 
   const metaCols: { key: keyof Row; label: string; width: number; sticky?: number }[] = [
     { key: "sample_number", label: "Sample #", width: 140, sticky: 0 },
@@ -371,7 +399,7 @@ export function DataViewTable() {
               {!isLoading && sorted.length === 0 && (
                 <tr><td colSpan={totalCols} className="px-3 py-12 text-center text-muted-foreground">No samples found.</td></tr>
               )}
-              {sorted.map((r) => (
+              {pageRows.map((r) => (
                 <tr key={r.id} className="border-t hover:bg-muted/40 group">
                   <td className="px-3 py-2 font-mono sticky left-0 z-10 bg-background group-hover:bg-muted" style={{ width: 140, minWidth: 140 }}>{r.sample_number}</td>
                   <td className="px-3 py-2 whitespace-nowrap text-xs text-muted-foreground sticky z-10 bg-background group-hover:bg-muted border-l" style={{ left: 140, width: 150, minWidth: 150 }}>{formatSampledAt(r.sampled_at)}</td>
@@ -399,7 +427,34 @@ export function DataViewTable() {
             </tbody>
           </table>
         </div>
-        <p className="text-xs text-muted-foreground">{sorted.length} of {rows.length} samples shown.</p>
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <p className="text-xs text-muted-foreground">
+            {sorted.length === 0
+              ? "0 samples"
+              : `Showing ${pageStart + 1}–${Math.min(pageStart + PAGE_SIZE, sorted.length)} of ${sorted.length} samples (${rows.length} loaded)`}
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              disabled={currentPage <= 0}
+            >
+              Previous
+            </Button>
+            <span className="text-xs text-muted-foreground tabular-nums">
+              Page {currentPage + 1} of {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+              disabled={currentPage >= totalPages - 1}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
