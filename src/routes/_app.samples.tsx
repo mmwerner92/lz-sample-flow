@@ -332,41 +332,49 @@ function SampleEntry() {
       setActiveSampleId(sampleId);
     }
 
-    if (selectedMethodId && methodFields.length) {
-      // Build description -> numeric value map for formulas (input fields only).
-      // Strings with embedded numerics (e.g. "12.5 ppm") contribute their numeric portion.
-      const valuesByDesc: Record<string, number> = {};
+    if (selectedMethodIds.size > 0 && methodFields.length) {
+      const fieldsByMethod = new Map<string, MethodField[]>();
       methodFields.forEach((f) => {
-        if (!f.is_calculated) {
-          const n = extractNumeric(readings[f.id]);
-          if (n !== null) valuesByDesc[f.description] = n;
-        }
+        const arr = fieldsByMethod.get(f.method_id) ?? [];
+        arr.push(f);
+        fieldsByMethod.set(f.method_id, arr);
       });
-      const rows = methodFields
-        .map((f) => {
+      const allRows: { sample_id: string; method_field_id: string; value: string }[] = [];
+      fieldsByMethod.forEach((fields) => {
+        const valuesByDesc: Record<string, number> = {};
+        fields.forEach((f) => {
+          if (!f.is_calculated) {
+            const n = extractNumeric(readings[f.id]);
+            if (n !== null) valuesByDesc[f.description] = n;
+          }
+        });
+        fields.forEach((f) => {
           if (f.is_calculated) {
             const computed = evalFormula(f.formula ?? "", valuesByDesc);
-            if (computed == null) return null;
-            return { sample_id: sampleId!, method_field_id: f.id, value: String(computed) };
+            if (computed == null) return;
+            allRows.push({ sample_id: sampleId!, method_field_id: f.id, value: String(computed) });
+          } else {
+            const v = readings[f.id];
+            if (v === undefined || v === "") return;
+            allRows.push({ sample_id: sampleId!, method_field_id: f.id, value: String(v) });
           }
-          const v = readings[f.id];
-          if (v === undefined || v === "") return null;
-          return { sample_id: sampleId!, method_field_id: f.id, value: String(v) };
-        })
-        .filter((r): r is { sample_id: string; method_field_id: string; value: string } => r !== null);
-      if (rows.length) {
+        });
+      });
+      if (allRows.length) {
         const { error } = await supabase
           .from("sample_readings")
-          .upsert(rows, { onConflict: "sample_id,method_field_id" });
+          .upsert(allRows, { onConflict: "sample_id,method_field_id" });
         if (error) {
           toast.error(error.message);
           return;
         }
       }
-      try {
-        await applyMethodInventoryUsage(sampleId!, selectedMethodId, user?.id ?? null);
-      } catch (e: any) {
-        toast.error(`Inventory: ${e.message}`);
+      for (const mid of selectedMethodIds) {
+        try {
+          await applyMethodInventoryUsage(sampleId!, mid, user?.id ?? null);
+        } catch (e: any) {
+          toast.error(`Inventory: ${e.message}`);
+        }
       }
     }
     await linkToSchedule(sampleNumber);
