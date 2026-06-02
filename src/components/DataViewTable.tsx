@@ -58,7 +58,7 @@ function MultiSelect({
       ? "All"
       : `${selected.size} selected`;
   return (
-    <Popover>
+    <Popover onOpenChange={onOpenChange}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
