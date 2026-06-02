@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { DataViewTable } from "@/components/DataViewTable";
 import { Button } from "@/components/ui/button";
-import { Maximize2, Minimize2 } from "lucide-react";
+import { Minimize2 } from "lucide-react";
 
 export const Route = createFileRoute("/_app/data")({
   head: () => ({ meta: [{ title: "Data View — LJ LIMS" }] }),
@@ -30,13 +30,8 @@ function DataView() {
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <h1 className="text-lg font-semibold tracking-tight">Data View</h1>
-        <Button variant="outline" size="sm" onClick={() => setExpanded(true)}>
-          <Maximize2 className="h-4 w-4 mr-1.5" />Expand
-        </Button>
-      </div>
-      <DataViewTable />
+      <h1 className="text-lg font-semibold tracking-tight">Data View</h1>
+      <DataViewTable onExpand={() => setExpanded(true)} />
     </div>
   );
 }
