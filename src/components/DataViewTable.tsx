@@ -343,7 +343,7 @@ export function DataViewTable() {
           </Button>
         </div>
 
-        <div className="rounded-md border overflow-auto">
+        <div className="rounded-md border overflow-auto max-h-[calc(100vh-260px)]">
           <table className="w-full text-sm border-collapse">
             <thead className="text-muted-foreground">
               <tr>
