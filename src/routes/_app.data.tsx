@@ -30,7 +30,7 @@ function DataView() {
 
   return (
     <div className="space-y-2">
-      <h1 className="text-lg font-semibold tracking-tight">Data View</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">Data View</h1>
       <DataViewTable onExpand={() => setExpanded(true)} />
     </div>
   );
