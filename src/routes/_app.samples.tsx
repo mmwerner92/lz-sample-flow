@@ -674,7 +674,7 @@ function SampleEntry() {
               </Button>
             </div>
             <div className="ml-auto flex items-center justify-center flex-1">
-              <span className="text-3xl font-bold tracking-tight">
+              <span className="text-[1.75rem] font-bold tracking-tight">
                 {(() => {
                   const pointName = samplePoints.find((p) => p.id === samplePointId)?.name;
                   if (pointName) {
