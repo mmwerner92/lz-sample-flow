@@ -164,7 +164,7 @@ function SampleEntry() {
         .from("samples")
         .select("sample_number")
         .eq("sample_point_id", searchPoint)
-        .order("created_at", { ascending: false });
+        .order("sample_number", { ascending: false });
       if (error) throw error;
       return (data ?? []).map((r: { sample_number: string }) => r.sample_number);
     },
