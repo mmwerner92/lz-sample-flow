@@ -330,19 +330,25 @@ export function DataViewTable({ fillHeight = false, onExpand }: { fillHeight?: b
             label="Methods"
             items={(methods ?? []).map((m) => ({ id: m.id, name: m.name }))}
             selected={selectedMethods}
-            onChange={setSelectedMethods}
+            onChange={(next) => {
+              setSelectedMethods(next);
+              setSelectedPoints(new Set());
+            }}
           />
           <MultiSelect
             label="Sample Points"
             items={samplePoints ?? []}
             selected={selectedPoints}
-            onChange={setSelectedPoints}
+            onChange={(next) => {
+              setSelectedPoints(next);
+              setSelectedMethods(new Set());
+            }}
           />
           <Button variant="outline" size="sm" onClick={exportCsv}>
             <Download className="h-4 w-4 mr-2" />Export CSV
           </Button>
           {onExpand && (
-            <Button variant="secondary" size="sm" onClick={onExpand} className="border border-primary/30 shadow-sm">
+            <Button variant="secondary" size="sm" onClick={onExpand} className="border border-primary/30 shadow-sm ml-auto">
               <Maximize2 className="h-4 w-4 mr-1.5" />Expand
             </Button>
           )}
