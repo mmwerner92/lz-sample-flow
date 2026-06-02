@@ -333,6 +333,11 @@ export function DataViewTable({ fillHeight = false, onExpand }: { fillHeight?: b
             items={(methods ?? []).map((m) => ({ id: m.id, name: m.name }))}
             selected={selectedMethods}
             onChange={setSelectedMethods}
+            onOpenChange={(open) => {
+              if (open && methods && methods.length > 0 && selectedMethods.size === methods.length) {
+                setSelectedMethods(new Set());
+              }
+            }}
           />
           <MultiSelect
             label="Sample Points"
