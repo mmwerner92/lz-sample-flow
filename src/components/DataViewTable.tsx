@@ -344,6 +344,11 @@ export function DataViewTable({ fillHeight = false, onExpand }: { fillHeight?: b
             items={samplePoints ?? []}
             selected={selectedPoints}
             onChange={setSelectedPoints}
+            onOpenChange={(open) => {
+              if (open && samplePoints && samplePoints.length > 0 && selectedPoints.size === samplePoints.length) {
+                setSelectedPoints(new Set());
+              }
+            }}
           />
           <Button variant="outline" size="sm" onClick={exportCsv}>
             <Download className="h-4 w-4 mr-2" />Export CSV
