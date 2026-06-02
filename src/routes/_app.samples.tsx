@@ -580,8 +580,8 @@ function SampleEntry() {
     <div className="flex flex-col gap-3 h-[calc(100vh-3rem)]">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Sample Entry</h1>
-          <p className="text-xs text-muted-foreground">
+          <h1 className="text-2xl font-semibold tracking-tight">Sample Entry</h1>
+          <p className="text-sm text-muted-foreground">
             Analyst: <span className="font-medium text-foreground">{profile?.full_name ?? "—"}</span>
             {activeSampleId && (
               <>
