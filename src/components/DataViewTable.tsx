@@ -399,7 +399,7 @@ export function DataViewTable() {
               {!isLoading && sorted.length === 0 && (
                 <tr><td colSpan={totalCols} className="px-3 py-12 text-center text-muted-foreground">No samples found.</td></tr>
               )}
-              {sorted.map((r) => (
+              {pageRows.map((r) => (
                 <tr key={r.id} className="border-t hover:bg-muted/40 group">
                   <td className="px-3 py-2 font-mono sticky left-0 z-10 bg-background group-hover:bg-muted" style={{ width: 140, minWidth: 140 }}>{r.sample_number}</td>
                   <td className="px-3 py-2 whitespace-nowrap text-xs text-muted-foreground sticky z-10 bg-background group-hover:bg-muted border-l" style={{ left: 140, width: 150, minWidth: 150 }}>{formatSampledAt(r.sampled_at)}</td>
