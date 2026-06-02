@@ -121,7 +121,7 @@ function MultiSelect({
   );
 }
 
-export function DataViewTable() {
+export function DataViewTable({ fillHeight = false }: { fillHeight?: boolean } = {}) {
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<{ key: string; dir: "asc" | "desc" }>({ key: "sampled_at", dir: "desc" });
   const [selectedMethods, setSelectedMethods] = useState<Set<string>>(new Set());
