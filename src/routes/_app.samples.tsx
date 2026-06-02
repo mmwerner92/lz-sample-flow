@@ -405,7 +405,7 @@ function SampleEntry() {
       toast.error("Sample point is required.");
       return;
     }
-    const newNumber = genSampleNumber();
+    const newNumber = await genUniqueSampleNumber();
     const payload = {
       sample_point_id: samplePointId,
       sample_number: newNumber,
