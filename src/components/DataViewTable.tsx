@@ -58,10 +58,19 @@ function MultiSelect({
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="outline" size="sm" className="justify-between gap-2 min-w-[180px]">
-          <span className="text-xs text-muted-foreground">{label}:</span>
-          <span className="text-xs">{summary}</span>
-          <ChevronDown className="h-3 w-3 opacity-60" />
+        <Button
+          variant="outline"
+          size="sm"
+          className="justify-between gap-2 min-w-[220px] border-primary/40 bg-primary/5 hover:bg-primary/10 hover:border-primary text-foreground shadow-sm"
+        >
+          <span className="text-xs font-semibold uppercase tracking-wide text-primary">{label}</span>
+          <span className="inline-flex items-center gap-1.5">
+            <span className="rounded-full bg-primary/15 text-primary text-[10px] font-semibold px-2 py-0.5">
+              {selected.size}/{items.length}
+            </span>
+            <span className="text-xs text-muted-foreground">{summary}</span>
+          </span>
+          <ChevronDown className="h-3.5 w-3.5 opacity-70" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-64 p-2" align="start">
