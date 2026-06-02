@@ -628,7 +628,7 @@ function SampleEntry() {
 
       <Card>
         <CardContent className="py-3">
-          <div className="flex flex-wrap items-end gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <div className="space-y-1">
               <Label className="text-xs">Find · Sample Point</Label>
               <Select
