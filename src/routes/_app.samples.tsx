@@ -674,7 +674,13 @@ function SampleEntry() {
             </Button>
             <div className="ml-auto flex items-center justify-center flex-1">
               <span className="text-2xl font-bold tracking-tight">
-                Sample: {samplePoints.find((p) => p.id === samplePointId)?.name ?? ""} - {sampleNumber}
+                {(() => {
+                  const pointName = samplePoints.find((p) => p.id === samplePointId)?.name;
+                  if (pointName) {
+                    return `Sample: ${pointName} | ${sampleNumber}`;
+                  }
+                  return `Sample: ${sampleNumber}`;
+                })()}
               </span>
             </div>
           </div>
