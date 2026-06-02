@@ -259,6 +259,16 @@ export function DataViewTable() {
     return arr;
   }, [filtered, sort]);
 
+  // Reset to first page when filters/search/sort change
+  useEffect(() => {
+    setPage(0);
+  }, [query, selectedMethods, selectedPoints, sort]);
+
+  const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages - 1);
+  const pageStart = currentPage * PAGE_SIZE;
+  const pageRows = sorted.slice(pageStart, pageStart + PAGE_SIZE);
+
   const metaCols: { key: keyof Row; label: string; width: number; sticky?: number }[] = [
     { key: "sample_number", label: "Sample #", width: 140, sticky: 0 },
     { key: "sampled_at", label: "Sampled", width: 150, sticky: 140 },
